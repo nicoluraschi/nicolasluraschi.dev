@@ -60,7 +60,7 @@ Montevideo, Uruguay (UTC-3) · Open to remote senior backend or tech lead roles.
    owner. Before automating data entry, I ran a blind test of LLM extraction against 29 races
    checked by hand, with the bar set in advance at 80% fully correct records. It missed (25–55%),
    so the design changed to AI discovery with human approval, which is what runs today.
-   Rails 8.1 API, PostgreSQL, Gemini, Sentry. *Case study coming.*
+   Rails 8.1 API, PostgreSQL, Next.js, Gemini, Sentry. *Case study coming.*
 2. **How I work with AI** → /how-i-work (internal link)
    Claude writes, Codex reviews, I decide. Risk-sized process, tests first, hooks that enforce the
    rules, and a second model as reviewer.
