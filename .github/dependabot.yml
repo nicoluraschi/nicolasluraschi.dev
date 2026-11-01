@@ -1,0 +1,15 @@
+# A freshly published version is the supply-chain window, so versions wait 7 days before they
+# are eligible. Dependabot exempts security updates from the cooldown.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+    groups:
+      actions-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
