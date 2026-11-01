@@ -1,0 +1,59 @@
+# AGENTS.md
+
+Shared, cross-agent context for nicolasluraschi.dev. Any AI agent working here reads this file
+(Claude Code imports it from CLAUDE.md; other agents read it directly). Project facts live here;
+personal working preferences live in the developer's global config.
+
+## What this is
+Nicolás Luraschi's personal developer site: who he is, selected work, how he works with AI, and a
+CV. It is read by recruiters and hiring managers, so every sentence on it must be true and
+defensible in an interview. Text first; the design serves the reading.
+
+## Stack
+- Plain static HTML and one CSS file. No framework, no build step, no JavaScript.
+- Hosted on GitHub Pages from `main`, custom domain `nicolasluraschi.dev` (apex; `www` redirects).
+- Why: `docs/adr/0001-plain-static-html.md`.
+
+## Repo layout
+| Path | What |
+|---|---|
+| `index.html` | Home (`/`) |
+| `how-i-work/index.html` | The essay (`/how-i-work`) |
+| `style.css` | The only stylesheet |
+| `cv.pdf` | Public CV (no references' contact details) |
+| `CNAME` | Custom domain for GitHub Pages |
+| `docs/` | Constitution, architecture, ADRs, design references |
+
+The site files land in the first site PR; this table describes the target layout.
+
+## Commands
+| Task | Command |
+|---|---|
+| Run locally | `python3 -m http.server 8000` → http://localhost:8000 |
+| Site checks | TODO — `scripts/check.py`, added with the site PR |
+| Secrets | `gitleaks detect --redact` |
+
+The local hooks (`lefthook.yml`) run gitleaks on every commit; CI runs the same commands.
+
+## Conventions
+- Semantic HTML, mobile-first CSS, light and dark through `prefers-color-scheme`. One font stack,
+  one accent colour.
+- Accessibility is a requirement, not a polish step: headings in order, visible focus, sufficient
+  contrast in both schemes, `prefers-reduced-motion` honoured.
+- Code review scope: gitleaks and the site checks run in hooks and CI. Don't re-report what they
+  catch. Review is for copy accuracy against the claims rules, accessibility, and structure.
+- Commits & branching: Conventional Commits; branch `<type>/<short-task-name>`, never `main`.
+- PRs are small and frequent: green on its own, leaves `main` working, one reviewable concern.
+- English everywhere: code, comments, commits, docs and site copy.
+
+## Architecture notes
+Key decisions are in `docs/architecture.md`; the weightiest get an ADR in `docs/adr/`.
+
+## Guardrails
+- **This repo is public (or will be).** Never commit private data: no dossier content, no client or
+  colleague names, no client metrics, no references' details, no phone number. Copy rules:
+  `.claude/rules/content.md`.
+- No JavaScript and no new dependencies without flagging them first.
+- Product, copy and taste decisions belong to the owner: flag, don't guess.
+- Don't weaken a security or CI check to make a build pass.
+- Collaboration model: `docs/constitution.md`.
