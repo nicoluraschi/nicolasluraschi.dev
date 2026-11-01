@@ -5,8 +5,7 @@ the `frontend-iteration` skill reads it before writing HTML or CSS.
 ## Files
 | File | What it is | Authority | Do not take |
 |---|---|---|---|
-| `claude-design-brief.md` | Input to Claude Design: audience, constraints, final copy, deliverables | **Authoritative** for copy and constraints | Nothing visual: it has no look |
-| _(pending)_ | The Claude Design output lands here | — | — |
+| _(none yet)_ | The Claude Design output lands here | — | — |
 
 ## Fixed before any reference
 These were decided with the owner and no design output overrides them:
