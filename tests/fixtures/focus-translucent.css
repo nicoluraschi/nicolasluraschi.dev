@@ -1,0 +1,2 @@
+/* Fixture: an outline at 2% opacity. */
+a.faint:focus-visible { outline-color: rgba(15, 92, 115, 0.02); }

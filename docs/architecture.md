@@ -24,12 +24,25 @@ already verified on the GitHub account (TXT record), which blocks takeover while
 `.dev` is HSTS-preloaded, so the site loads only once GitHub has issued its certificate.
 
 ## Quality tooling & CI
-- Local hooks (`lefthook.yml`, run `lefthook install` once per clone): gitleaks on staged changes.
-- CI (`.github/workflows/ci.yml`): gitleaks over the full history on every PR and push to `main`.
-  While the repo is private these minutes count against the shared Actions quota; the job runs in
-  well under a minute.
-- Dependabot (`.github/dependabot.yml`): GitHub Actions versions, monthly, 7-day cooldown.
-- The site checks (`scripts/check.py`) join hooks and CI with the first site PR.
+- Local hooks (`lefthook.yml`, run `lefthook install` once per clone): gitleaks on staged changes,
+  plus, on commits touching HTML or CSS, the fast static subset: `scripts/check.py` and
+  html-validate. No network, no browser.
+- CI (`.github/workflows/ci.yml`): one job on every PR and push to `main`. Steps: checkout,
+  gitleaks over the full history, `npm ci --ignore-scripts`, a Python venv with hash-checked
+  `coverage`, a cached Chromium, `npm run check` (all checks and the self-tests, coverage gate
+  ≥85% on `scripts/check.py`), then `npm run check:external` as its own step so a third-party
+  outage reads as that step failing. While the repo is private these minutes count against the
+  shared Actions quota.
+- Site checks, by what proves them. `scripts/check.py` (Python stdlib): forbidden markup, internal
+  links and assets, contrast from the CSS tokens, and with `--external` the outside links.
+  html-validate: HTML validity. Playwright with axe (Chromium, loopback server, light and dark):
+  WCAG A/AA, no horizontal scroll at 320 and 360px, visible keyboard focus, 44px tap targets,
+  reduced motion. Each check has a failing fixture under `tests/fixtures/` that must keep failing.
+- Toolchain: dev-only, never served. Exact versions, installed with `--ignore-scripts`, each
+  published at least 7 days before it was adopted; Chromium is pinned by the Playwright version.
+- Dependabot (`.github/dependabot.yml`): GitHub Actions, npm and pip, monthly, 7-day cooldown.
+- Open for the launch PR: GitHub Pages publishes the repo root, so `docs/`, `scripts/`, `tests/`
+  and `package.json` would be served; deploy an allowlist then.
 
 ## Reference
 - Principles: `docs/constitution.md` · Copy rules: `.claude/rules/content.md` · Design references:

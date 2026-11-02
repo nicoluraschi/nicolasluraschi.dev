@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Fixture: links that must all resolve</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<main id="main">
+<ul>
+<li><a href="/">root</a></li>
+<li><a href="/#contact">root fragment</a></li>
+<li><a href="/how-i-work">directory without slash</a></li>
+<li><a href="/how-i-work/">directory with slash</a></li>
+<li><a href="#main">same page</a></li>
+<li><a href="//example.com/x">protocol-relative is external</a></li>
+<li><a href="https://example.com/">absolute</a></li>
+<li><a href="mailto:someone@example.com">mail</a></li>
+<li><a href="/luraschi-cv.pdf">excluded</a></li>
+<li><img src="/img/runhub.png" width="10" height="10" alt="excluded"></li>
+<li><img src="/img/marginalia.png" width="10" height="10" alt="excluded"></li>
+</ul>
+</main>
+</body>
+</html>

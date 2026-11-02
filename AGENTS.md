@@ -22,6 +22,9 @@ defensible in an interview. Text first; the design serves the reading.
 | `style.css` | The only stylesheet |
 | `fonts/` | Self-hosted Fraunces (latin subset, variable) and its SIL OFL licence |
 | `img/` | Project screenshots, 1280x800 |
+| `scripts/check.py` | Static site checks (Python stdlib only) |
+| `tests/` | Self-tests for the checks: `test_check.py`, `browser/*.spec.mjs`, `fixtures/` (one defect each) |
+| `package.json`, `requirements-dev.txt` | Dev-only toolchain, never served (html-validate, Playwright, axe, coverage) |
 | `luraschi-cv.pdf` | Public CV (no references' contact details) |
 | `CNAME` | Custom domain for GitHub Pages |
 | `docs/` | Constitution, architecture, ADRs, design references (`docs/design/DESIGN.md`) |
@@ -32,10 +35,14 @@ Still to add: `luraschi-cv.pdf`, the screenshots, `CNAME`.
 | Task | Command |
 |---|---|
 | Run locally | `python3 -m http.server 8000` → http://localhost:8000 |
-| Site checks | TODO — `scripts/check.py`, added with the site PR |
+| Setup (once) | `npm ci --ignore-scripts && python3 -m venv .venv && .venv/bin/pip install --require-hashes -r requirements-dev.txt && node_modules/.bin/playwright install chromium` |
+| Site checks | `npm run check` (static, HTML validity, self-tests with ≥85% coverage, browser checks) |
+| External links | `npm run check:external` (network; not in the hook) |
 | Secrets | `gitleaks detect --redact` |
 
-The local hooks (`lefthook.yml`) run gitleaks on every commit; CI runs the same commands.
+The pre-commit hook (`lefthook.yml`) runs gitleaks and, on commits touching HTML or CSS, the fast
+static checks (`npm run check:static` and `check:html`: no network, no browser). CI (`.github/workflows/ci.yml`) runs gitleaks over the full
+history, then `npm run check` (adds the self-tests and browser checks) and `npm run check:external`.
 
 ## Conventions
 - Semantic HTML, mobile-first CSS, light and dark through `prefers-color-scheme`. One font stack,

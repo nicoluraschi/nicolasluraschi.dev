@@ -1,0 +1,17 @@
+/* Fixture: the light block has no --accent. */
+:root {
+  --bg: #F4F5F5;
+  --surface: #E6EAEB;
+  --text: #12161A;
+  --muted: #4F5A60;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0C1215;
+    --surface: #151E22;
+    --text: #E6EDEF;
+    --muted: #9FB0B6;
+    --accent: #6CC4DC;
+  }
+}

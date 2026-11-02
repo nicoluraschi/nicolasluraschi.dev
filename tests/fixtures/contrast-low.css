@@ -1,0 +1,18 @@
+/* Fixture: --muted #9AA3A8 on --bg #F4F5F5 is below 4.5:1. Everything else passes. */
+:root {
+  --bg: #F4F5F5;
+  --surface: #E6EAEB;
+  --text: #12161A;
+  --muted: #9AA3A8;
+  --accent: #0F5C73;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0C1215;
+    --surface: #151E22;
+    --text: #E6EDEF;
+    --muted: #9FB0B6;
+    --accent: #6CC4DC;
+  }
+}

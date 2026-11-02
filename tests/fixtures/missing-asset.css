@@ -1,0 +1,5 @@
+/* Fixture: a stylesheet whose url() points at a file that does not exist. */
+@font-face {
+  font-family: "Missing";
+  src: url("/fonts/missing.woff2") format("woff2");
+}
