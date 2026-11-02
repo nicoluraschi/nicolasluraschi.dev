@@ -80,6 +80,8 @@ In the plan: `docs/specs/plans/2026-11-real-assets.md`.
   and line.
 - Given `TODO`, `TBD`, `FIXME` or `XXX` as whole, uppercase words, then it fails.
 - Given `lorem ipsum` in any letter case, then it fails.
+- Given `coming soon` or `case study coming` in any letter case, then it fails (added with
+  `fix/copy-accuracy`).
 - Given a URL attribute (`href`, `src`, `srcset`, `action`) whose host is `example.com`,
   `example.org`, `example.net` or a subdomain of one, then it fails.
 - Given `href="#"`, or an `href` that is empty or only whitespace, then it fails.

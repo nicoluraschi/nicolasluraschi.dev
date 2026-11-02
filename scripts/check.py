@@ -173,7 +173,8 @@ def check_links(path, root, url_path):
 
 
 PLACEHOLDER_PATTERN = re.compile(
-    r"\bYOUR-[A-Z][A-Z0-9_-]*|\b(?:TODO|TBD|FIXME|XXX)\b|(?i:lorem\s+ipsum)")
+    r"\bYOUR-[A-Z][A-Z0-9_-]*|\b(?:TODO|TBD|FIXME|XXX)\b|(?i:lorem\s+ipsum)"
+    r"|(?i:\bcoming\s+soon\b|\bcase\s+study\s+coming\b)")
 DUMMY_HOST = re.compile(r"(?:.+\.)?example\.(?:com|org|net)", re.IGNORECASE)
 
 
