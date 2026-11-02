@@ -207,10 +207,21 @@ h3 {
   border-radius: 4px;
   background: var(--surface);
 }
-.stack { color: var(--muted); font-size: 0.9375rem; }
+/* Labelled stack: one row per layer, label and items on the same line. */
+.stack { margin: 0 0 var(--space-3); color: var(--muted); font-size: 0.9375rem; line-height: var(--leading-snug); }
+.stack > div { padding-left: var(--space-5); text-indent: calc(-1 * var(--space-5)); } /* wrapped items hang past the label */
+.stack > div + div { margin-top: var(--space-2); }
+.stack dt {
+  display: inline;
+  margin-right: var(--space-2);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.stack dd { display: inline; margin: 0; }
 .tag {
   display: inline-block;
-  margin-left: var(--space-2);
   padding: 0 0.45rem;
   border: 1px solid var(--muted);
   border-radius: 3px;
@@ -230,8 +241,8 @@ h3 {
   padding-top: var(--space-5);
   border-top: 1px solid var(--hair);
 }
-.job h3 { font-size: var(--text-lg); margin-bottom: var(--space-2); }
-.dates { display: block; font-size: var(--text-sm); font-weight: 400; letter-spacing: 0; color: var(--muted); }
+.job h3 { font-size: var(--text-lg); margin-bottom: 0; }
+.job .dates { margin: 0 0 var(--space-2); font-size: var(--text-sm); line-height: 1.4; color: var(--muted); }
 .job ul { margin: 0; padding-left: 1.15rem; }
 .job li { margin-bottom: var(--space-2); }
 .job li::marker { color: var(--muted); }
@@ -347,7 +358,7 @@ h3 {
   .shot { order: 0; grid-column: 2; grid-row: 1; margin: 0; }
 
   .job { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); column-gap: var(--col-gap); }
-  .job h3 { margin-bottom: 0; }
+  .job .dates { margin-bottom: 0; }
   .toolbox > div { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); column-gap: var(--col-gap); }
   .org { margin-bottom: var(--space-5); }
 
