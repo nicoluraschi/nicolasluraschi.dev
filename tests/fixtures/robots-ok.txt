@@ -1,0 +1,5 @@
+# Fixture: robots-ok.txt
+User-agent: *
+Allow: /
+
+Sitemap: https://nicolasluraschi.dev/sitemap.xml

@@ -1,0 +1,3 @@
+# Fixture: robots-no-sitemap.txt
+User-agent: *
+Allow: /

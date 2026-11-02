@@ -1,0 +1,5 @@
+# Fixture: robots-disallow.txt
+User-agent: *
+Disallow: /how-i-work/
+
+Sitemap: https://nicolasluraschi.dev/sitemap.xml
