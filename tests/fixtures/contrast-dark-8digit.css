@@ -1,0 +1,18 @@
+/* Fixture: the dark block declares --bg as 8-digit hex, which the check does not support. */
+:root {
+  --bg: #F4F5F5;
+  --surface: #E6EAEB;
+  --text: #12161A;
+  --muted: #4F5A60;
+  --accent: #0F5C73;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0C121580;
+    --surface: #151E22;
+    --text: #E6EDEF;
+    --muted: #9FB0B6;
+    --accent: #6CC4DC;
+  }
+}

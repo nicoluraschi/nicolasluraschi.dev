@@ -1,0 +1,2 @@
+/* Fixture: the outline exists but cannot be seen. */
+a.ghost:focus-visible { outline-color: transparent; }

@@ -1,2 +1,9 @@
 logs/
 .DS_Store
+node_modules/
+test-results/
+playwright-report/
+.coverage
+htmlcov/
+.venv/
+__pycache__/

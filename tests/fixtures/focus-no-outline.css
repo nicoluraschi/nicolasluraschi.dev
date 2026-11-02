@@ -1,0 +1,2 @@
+/* Fixture: removes the focus outline the design depends on. */
+a.plain:focus-visible { outline: none; }

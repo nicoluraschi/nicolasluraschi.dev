@@ -2,3 +2,10 @@ pre-commit:
   commands:
     gitleaks:
       run: gitleaks protect --staged --redact
+    # No network and no browser here: the fast static subset. `npm run check` runs the rest.
+    site-checks:
+      glob: "*.{html,css}"
+      run: npm run check:static
+    html-validate:
+      glob: "*.{html,css}"
+      run: npm run check:html

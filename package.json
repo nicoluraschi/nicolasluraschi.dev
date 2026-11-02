@@ -1,0 +1,18 @@
+{
+  "name": "nicolasluraschi-dev-checks",
+  "private": true,
+  "description": "Dev-only checks for the static site. Nothing here is served or shipped.",
+  "scripts": {
+    "check": "npm run check:static && npm run check:html && npm run test:py && npm run test:browser",
+    "check:static": "python3 scripts/check.py",
+    "check:html": "html-validate index.html how-i-work/index.html",
+    "check:external": "python3 scripts/check.py --external",
+    "test:py": ".venv/bin/python -m coverage run -m unittest discover -s tests -p 'test_*.py' && .venv/bin/python -m coverage report",
+    "test:browser": "playwright test"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@playwright/test": "1.64.1",
+    "html-validate": "11.17.0"
+  }
+}

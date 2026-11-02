@@ -1,0 +1,2 @@
+/* Fixture: a link transition that ignores prefers-reduced-motion. */
+a { transition: text-decoration-thickness 0.12s ease; }

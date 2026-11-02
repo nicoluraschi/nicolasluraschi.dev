@@ -1,0 +1,2 @@
+/* Fixture: a fixed element wider than a 320px viewport. */
+.wide { width: 400px; }

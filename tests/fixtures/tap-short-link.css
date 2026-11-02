@@ -1,0 +1,2 @@
+/* Fixture: a header link shorter than the 44px tap target. */
+.site-header a.short { min-height: 0; }
