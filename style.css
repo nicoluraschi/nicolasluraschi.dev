@@ -353,6 +353,7 @@ h3 {
 }
 .pullquote span {
   display: block;
+  font-family: var(--font);     /* a small label: the body-size fallback, not the display one */
   margin-bottom: var(--space-2);
   font-size: var(--text-sm);
   line-height: 1.4;
