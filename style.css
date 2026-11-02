@@ -201,6 +201,7 @@ h3 {
 .work:first-of-type { padding-top: 0; border-top: 0; }
 .work p { margin-bottom: var(--space-3); }
 .shot { order: -1; margin: 0 0 var(--space-4); }
+.shot a { display: block; } /* one box, the image's, so the focus ring paints around it */
 .shot img {
   display: block;
   width: 100%;
