@@ -1,0 +1,5 @@
+# Fixture: robots-no-agent.txt
+User-agent: Googlebot
+Allow: /
+
+Sitemap: https://nicolasluraschi.dev/sitemap.xml

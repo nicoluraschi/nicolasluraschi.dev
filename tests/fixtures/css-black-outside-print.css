@@ -1,0 +1,6 @@
+/* Fixture: black is allowed only inside @media print. */
+:root { --bg: #FFFFFF; }
+@media print {
+  body { color: #000; }
+}
+.card { color: black; }

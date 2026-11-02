@@ -1,0 +1,5 @@
+/* Fixture: a colour token set to red inside @media print. */
+:root { --accent: #A33D1A; }
+@media print {
+  :root { --accent: #c00; }
+}

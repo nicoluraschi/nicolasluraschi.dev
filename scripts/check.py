@@ -7,6 +7,7 @@ import time
 import urllib.error
 import urllib.request
 from html.parser import HTMLParser
+from xml.etree import ElementTree
 from pathlib import Path
 from typing import NamedTuple
 from urllib.parse import unquote, urljoin, urlsplit
@@ -354,17 +355,40 @@ def _without_vars(value):
     return re.sub(r"var\(\s*--[\w-]+\s*,?|\)", " ", value)
 
 
+PRINT_COLOUR = re.compile(r"#(?:000(?:000)?|fff(?:fff)?)(?![0-9a-fA-F])|\b(?:black|white)\b", re.IGNORECASE)
+COLOUR_TOKENS = _ALL_TOKENS + ("--hair",)
+
+
+def print_spans(css):
+    """(start, end) offsets of the body of each `@media print { ... }` block."""
+    spans = []
+    for match in re.finditer(r"@media\s+print\s*\{", css, re.IGNORECASE):
+        depth, i = 1, match.end()
+        while i < len(css) and depth:
+            depth += {"{": 1, "}": -1}.get(css[i], 0)
+            i += 1
+        spans.append((match.end(), i))
+    return spans
+
+
 def check_css_colours(css, name):
-    """Colours only through custom properties; no gradients, no shadows (PR 3)."""
+    """Colours only through custom properties; no gradients, no shadows (PR 3). Inside
+    `@media print`, black and white are allowed, as literals or as colour-token values (PR 5)."""
     css = _blank_comments(css)
+    spans = print_spans(css)
     problems = []
     for block in re.finditer(r"\{([^{}]*)\}", css):
+        in_print = any(start <= block.start() < end for start, end in spans)
         for decl in re.finditer(r"([\w-]+)\s*:\s*([^;]*)", block.group(1)):
             prop, value = decl.group(1).lower(), decl.group(2).strip()
-            if prop.startswith("--") or prop == "color-scheme":
-                continue  # a token definition, or a scheme name, not a colour use
             line = css.count("\n", 0, block.start(1) + decl.start()) + 1
             where = f"line {line}: {prop}: {value}"
+            if in_print and prop in COLOUR_TOKENS and not PRINT_COLOUR.fullmatch(value):
+                problems.append(Problem(str(name), "print-colour", where))
+            if prop.startswith("--") or prop == "color-scheme":
+                continue  # a token definition, or a scheme name, not a colour use
+            if in_print:
+                value = PRINT_COLOUR.sub(" ", value)
             if "gradient(" in value.lower():
                 problems.append(Problem(str(name), "gradient", where))
             elif prop.endswith("shadow") and value.lower() != "none" or "drop-shadow(" in value.lower():
@@ -393,6 +417,138 @@ def check_css_assets(path, root, url_path):
             problem = _check_url(url, path, line, root, url_path)
             if problem:
                 problems.append(problem)
+    return problems
+
+
+# ---------- Launch basics: link previews, favicons, robots.txt, sitemap (PR 5) ----------
+SITE = "https://nicolasluraschi.dev"
+REQUIRED_META = ("og:title", "og:description", "og:image", "og:url", "twitter:card")
+OG_IMAGE_SIZE = (1200, 630)
+FAVICON_TYPES = ("image/svg+xml", "image/png")
+
+
+def _site_url(url, source, line, root):
+    """An absolute URL on SITE resolves to a file under root. Returns a Problem or None."""
+    parts = _split(url)
+    if parts is None:
+        return _malformed(source, line, url)
+    if f"{parts.scheme}://{parts.netloc}" != SITE:
+        return Problem(str(source), "off-site-url", f"line {line}: {url} is not on {SITE}")
+    return _check_url(parts.path or "/", source, line, root, "/")
+
+
+def png_size(path):
+    """(width, height) from a PNG's IHDR chunk, or None when the file is not a PNG."""
+    data = Path(path).read_bytes()[:24]
+    if len(data) < 24 or data[:8] != b"\x89PNG\r\n\x1a\n" or data[12:16] != b"IHDR":
+        return None
+    return int.from_bytes(data[16:20], "big"), int.from_bytes(data[20:24], "big")
+
+
+def head_meta(path):
+    """{name or property: (content, line)} for each <meta>; the first one of a name wins."""
+    meta = {}
+    for tag, attrs, line in parse(path).tags:
+        key = attrs.get("property") or attrs.get("name")
+        if tag == "meta" and key:
+            meta.setdefault(key, (attrs.get("content", "").strip(), line))
+    return meta
+
+
+def check_head(path, root, url_path):
+    """Open Graph and Twitter tags, and an SVG favicon with a PNG fallback (PR 5)."""
+    problems = []
+    meta = head_meta(path)
+    value = {key: content for key, (content, _) in meta.items()}
+
+    def add(rule, message):
+        problems.append(Problem(str(path), rule, message))
+
+    for key in REQUIRED_META:
+        if not value.get(key):
+            add("missing-meta", f"no {key}")
+    card = value.get("twitter:card")
+    if card and card != "summary_large_image":
+        add("meta-mismatch", f"twitter:card is {card!r}, needs 'summary_large_image'")
+    if value.get("og:description") and value["og:description"] != value.get("description"):
+        add("meta-mismatch", "og:description is not the meta description verbatim")
+    if value.get("og:url") and value["og:url"] != SITE + url_path:
+        add("meta-mismatch", f"og:url is {value['og:url']}, needs {SITE + url_path}")
+    image = value.get("og:image")
+    if image:
+        line = meta["og:image"][1]
+        problem = _site_url(image, path, line, root)
+        if problem:
+            problems.append(problem)
+        else:
+            # Resolved as _check_url did (dot segments removed), so it is the file it vetted.
+            target = root / unquote(urlsplit(urljoin("/", urlsplit(image).path)).path).lstrip("/")
+            size = png_size(target) if target.is_file() else None
+            if size != OG_IMAGE_SIZE:
+                found = "not a PNG" if size is None else "{}x{}".format(*size)
+                add("og-image-size", f"line {line}: {image} is {found}, needs 1200x630 PNG")
+    icon_types = {attrs.get("type") for tag, attrs, _ in parse(path).tags
+                  if tag == "link" and "icon" in attrs.get("rel", "").lower().split()}
+    for kind in FAVICON_TYPES:
+        if kind not in icon_types:
+            add("missing-favicon", f"no <link rel=\"icon\" type=\"{kind}\">")
+    return problems
+
+
+def _missing_file(path):
+    return [Problem(str(path), "missing-file", f"{Path(path).name} does not exist")]
+
+
+def check_robots(path):
+    """robots.txt: a `User-agent: *` group, no Disallow rule, and a Sitemap line for /sitemap.xml
+    (check_sitemap reports a missing sitemap.xml)."""
+    if not Path(path).is_file():
+        return _missing_file(path)
+    problems, any_agent, sitemaps = [], False, []
+    for n, raw in enumerate(Path(path).read_text(encoding="utf-8").splitlines(), 1):
+        field, _, value = raw.split("#", 1)[0].partition(":")
+        field, value = field.strip().lower(), value.strip()
+        if field == "user-agent" and value == "*":
+            any_agent = True
+        elif field == "disallow" and value:
+            problems.append(Problem(str(path), "robots-disallow", f"line {n}: Disallow: {value}"))
+        elif field == "sitemap":
+            sitemaps.append((n, value))
+    if not any_agent:
+        problems.append(Problem(str(path), "robots-agent", "no User-agent: * group"))
+    if not sitemaps:
+        problems.append(Problem(str(path), "robots-sitemap", "no Sitemap line"))
+    for n, url in sitemaps:
+        if url != SITE + "/sitemap.xml":
+            problems.append(Problem(str(path), "robots-sitemap", f"line {n}: {url}, needs {SITE}/sitemap.xml"))
+    return problems
+
+
+SITEMAP_NS = "{http://www.sitemaps.org/schemas/sitemap/0.9}"
+
+
+def check_sitemap(path, root, pages):
+    """sitemap.xml: a well-formed urlset that lists every page, with every <loc> resolving."""
+    if not Path(path).is_file():
+        return _missing_file(path)
+    text = Path(path).read_text(encoding="utf-8")
+    try:
+        tree = ElementTree.fromstring(text)  # our own committed file, not untrusted input
+    except ElementTree.ParseError as error:
+        return [Problem(str(path), "sitemap-invalid", f"not well-formed XML: {error}")]
+    if tree.tag != SITEMAP_NS + "urlset":
+        return [Problem(str(path), "sitemap-invalid", f"root is {tree.tag}, needs a sitemaps.org urlset")]
+    problems, locs = [], []
+    for loc in tree.iter(SITEMAP_NS + "loc"):
+        url = (loc.text or "").strip()
+        locs.append(url)
+        line = text.count("\n", 0, max(text.find(f">{loc.text}<"), 0)) + 1
+        problem = _site_url(url, path, line, root)
+        if problem:
+            problems.append(problem)
+    for _, url_path in pages:
+        if SITE + url_path not in locs:
+            problems.append(Problem(str(path), "sitemap-missing-page", f"{SITE + url_path} is not listed"))
     return problems
 
 
@@ -516,6 +672,9 @@ def main(argv=None, root=ROOT, external_checker=check_external_url):
             problems += check_forbidden(root / page)
             problems += check_links(root / page, root, url_path)
             problems += check_placeholders(root / page)
+            problems += check_head(root / page, root, url_path)
+        problems += check_robots(root / "robots.txt")
+        problems += check_sitemap(root / "sitemap.xml", root, PAGES)
         css_file, css_url = STYLESHEET
         css = (root / css_file).read_text(encoding="utf-8")
         problems += check_css_assets(root / css_file, root, css_url)

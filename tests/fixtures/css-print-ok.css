@@ -1,0 +1,7 @@
+/* Fixture: black on white inside @media print, as tokens and as literals. */
+:root { --bg: #FFFFFF; --text: #111111; }
+@media print {
+  :root { --bg: #fff; --text: #000; --accent: #000000; --hair: #FFF; }
+  body { color: black; background: white; }
+  a { color: #000; }
+}

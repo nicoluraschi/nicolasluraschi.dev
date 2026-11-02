@@ -21,8 +21,11 @@ defensible in an interview. Text first; the design serves the reading.
 | `how-i-work/index.html` | The essay (`/how-i-work`) |
 | `style.css` | The only stylesheet |
 | `fonts/` | Self-hosted Fraunces (latin subset, variable) and its SIL OFL licence |
-| `img/` | Project screenshots, 1280x800 |
+| `img/` | Project screenshots, 1280x800; `og.png`, the 1200x630 link-preview card |
+| `favicon.svg`, `favicon.png` | "NL" monogram favicon and its 32px PNG fallback |
+| `robots.txt`, `sitemap.xml` | Crawl rules (allow all) and the two page URLs |
 | `scripts/check.py` | Static site checks (Python stdlib only) |
+| `scripts/render-assets.mjs` | Dev-only: renders `img/og.png` (from `scripts/_og-card.html`) and `favicon.png` with Playwright |
 | `tests/` | Self-tests for the checks: `test_check.py`, `browser/*.spec.mjs`, `fixtures/` (one defect each) |
 | `package.json`, `requirements-dev.txt` | Dev-only toolchain, never served (html-validate, Playwright, axe, coverage) |
 | `luraschi-cv.pdf` | Public CV (no references' contact details) |

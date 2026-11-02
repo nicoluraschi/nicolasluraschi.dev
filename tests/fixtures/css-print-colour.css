@@ -1,0 +1,5 @@
+/* Fixture: a grey literal inside @media print. */
+:root { --bg: #FFFFFF; }
+@media print {
+  body { color: #333; }
+}

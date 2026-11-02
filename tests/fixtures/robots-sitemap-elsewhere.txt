@@ -1,0 +1,5 @@
+# Fixture: robots-sitemap-elsewhere.txt
+User-agent: *
+Allow: /
+
+Sitemap: https://nicolasluraschi.dev/map.xml

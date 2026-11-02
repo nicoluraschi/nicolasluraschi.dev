@@ -42,8 +42,9 @@ Spacing: 4 / 8 / 12 / 16 / 24 / 40 / 56 / 80px. Measure: 37rem (~68 characters).
 Light: bg #F6F1EB, surface #ECE0D3, text #1E1915, muted #5C5047, hairline #DDD0C2, accent #A33D1A.
 Dark: bg #15110E, surface #241B15, text #F0E8E0, muted #B9A898, hairline #3A2E25, accent #EE9466.
 Lowest pair: light accent on surface, 4.99:1. Every rendered text pair is checked in both schemes by `tests/browser/contrast.spec.mjs`.
+Print: black on white in either scheme (the only colours outside the tokens, inside `@media print`); no header, skip link or contents; external links show their URL.
+Favicon: "NL" monogram in the accent (`favicon.svg`, swaps to the dark accent; `favicon.png` 32px fallback). Link-preview card: `img/og.png`, 1200x630, rendered from `scripts/_og-card.html`.
 
 ## Not done yet
-- Open Graph image, favicon, `robots.txt`, print stylesheet.
 - RunHub case study page.
 - Font fallback metric tuning (`size-adjust`) to reduce layout shift while the font loads; the font is preloaded and uses `font-display: swap`.

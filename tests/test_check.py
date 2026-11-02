@@ -1,6 +1,7 @@
 """Self-tests for scripts/check.py. Each rule is proven by a fixture that breaks only that rule."""
 import contextlib
 import io
+import re
 import sys
 import tempfile
 import threading
@@ -647,6 +648,205 @@ class ExternalLinksTest(unittest.TestCase):
         self.assertIn("https://runhub.uy", urls)
 
 
+class HeadTest(unittest.TestCase):
+    """PR 5: link-preview tags and favicons on every page."""
+
+    def problems(self, name):
+        path = FIXTURES / name
+        return check.check_head(path, REPO, url_of(path))
+
+    def test_complete_head_passes(self):
+        self.assertEqual([], self.problems("head-ok.html"))
+
+    def test_each_fixture_fails_with_its_rule_only(self):
+        cases = {
+            "head-no-og-title.html": ("missing-meta", "og:title"),
+            "head-no-twitter-card.html": ("missing-meta", "twitter:card"),
+            "head-twitter-card-summary.html": ("meta-mismatch", "summary_large_image"),
+            "head-description-differs.html": ("meta-mismatch", "og:description"),
+            "head-og-url-wrong.html": ("meta-mismatch", "og:url"),
+            "head-og-image-size.html": ("og-image-size", "1280x800"),
+            "head-og-image-missing.html": ("missing-target", "/img/nope.png"),
+            "head-og-image-offsite.html": ("off-site-url", "https://cdn.test/og.png"),
+            "head-no-png-icon.html": ("missing-favicon", "image/png"),
+            "head-no-svg-icon.html": ("missing-favicon", "image/svg+xml"),
+        }
+        for name, (rule, detail) in cases.items():
+            with self.subTest(name):
+                problems = self.problems(name)
+                self.assertEqual([rule], rules(problems))
+                self.assertIn(detail, problems[0].message)
+                path = FIXTURES / name
+                self.assertEqual([], check.check_forbidden(path))
+                self.assertEqual([], check.check_links(path, REPO, url_of(path)))
+
+    def test_og_image_that_is_not_a_png_is_reported(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "og.png").write_text("not a png", encoding="utf-8")
+            page = root / "index.html"
+            page.write_text((FIXTURES / "head-ok.html").read_text(encoding="utf-8")
+                            .replace("/img/og.png", "/og.png")
+                            .replace("/tests/fixtures/head-ok.html", "/"), encoding="utf-8")
+            problems = check.check_head(page, root, "/")
+        self.assertEqual(["og-image-size"], rules(problems))
+        self.assertIn("not a PNG", problems[0].message)
+
+    def test_og_image_that_resolves_to_a_page_is_reported_not_raised(self):
+        for url in ("https://nicolasluraschi.dev/how-i-work/", "https://nicolasluraschi.dev/img/og%2Epng"):
+            with self.subTest(url), tempfile.TemporaryDirectory() as tmp:
+                page = Path(tmp) / "page.html"
+                page.write_text((FIXTURES / "head-ok.html").read_text(encoding="utf-8")
+                                .replace("https://nicolasluraschi.dev/img/og.png", url), encoding="utf-8")
+                problems = check.check_head(page, REPO, "/tests/fixtures/head-ok.html")
+                expected = ["og-image-size"] if "how-i-work" in url else []
+                self.assertEqual(expected, rules(problems))
+
+    def test_og_image_with_dot_segments_is_read_inside_the_root(self):
+        with tempfile.TemporaryDirectory() as outer:
+            root = Path(outer) / "site"
+            root.mkdir()
+            (Path(outer) / "og.png").write_bytes((REPO / "img" / "og.png").read_bytes())
+            (root / "og.png").write_bytes((REPO / "img" / "runhub.png").read_bytes())
+            page = root / "index.html"
+            page.write_text((FIXTURES / "head-ok.html").read_text(encoding="utf-8")
+                            .replace("/img/og.png", "/../og.png")
+                            .replace("/tests/fixtures/head-ok.html", "/"), encoding="utf-8")
+            problems = check.check_head(page, root, "/")
+        # The URL means /og.png inside the root (1280x800), never the 1200x630 file outside it.
+        self.assertEqual(["og-image-size"], rules(problems))
+        self.assertIn("1280x800", problems[0].message)
+
+    def test_malformed_og_image_is_reported(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            page = Path(tmp) / "page.html"
+            page.write_text((FIXTURES / "head-ok.html").read_text(encoding="utf-8")
+                            .replace("https://nicolasluraschi.dev/img/og.png", "http://[x/"), encoding="utf-8")
+            problems = check.check_head(page, REPO, "/tests/fixtures/head-ok.html")
+        self.assertEqual(["malformed-url"], rules(problems))
+
+    def test_site_pages_pass(self):
+        for page, url_path in check.PAGES:
+            self.assertEqual([], check.check_head(REPO / page, REPO, url_path), page)
+
+    def test_og_image_is_1200_by_630(self):
+        self.assertEqual((1200, 630), check.png_size(REPO / "img" / "og.png"))
+
+    def test_favicon_colours_are_the_accent_tokens(self):
+        light, dark = check._token_blocks((REPO / "style.css").read_text(encoding="utf-8"))
+        svg = (REPO / "favicon.svg").read_text(encoding="utf-8")
+        self.assertEqual([light["--accent"], dark["--accent"]], re.findall(r"fill:\s*(#[0-9A-Fa-f]{6})", svg))
+        self.assertEqual((32, 32), check.png_size(REPO / "favicon.png"))
+
+    def test_og_description_reuses_the_meta_description_on_each_page(self):
+        for page, _ in check.PAGES:
+            meta = check.head_meta(REPO / page)
+            self.assertEqual(meta["description"][0], meta["og:description"][0], page)
+
+
+class RobotsTest(unittest.TestCase):
+    """PR 5: robots.txt allows everything and points to the sitemap."""
+
+    def problems(self, name):
+        return check.check_robots(FIXTURES / name)
+
+    def test_valid_robots_passes(self):
+        self.assertEqual([], self.problems("robots-ok.txt"))
+
+    def test_each_fixture_fails_with_its_rule_only(self):
+        cases = {
+            "robots-disallow.txt": ("robots-disallow", "line 3"),
+            "robots-no-agent.txt": ("robots-agent", "User-agent: *"),
+            "robots-no-sitemap.txt": ("robots-sitemap", "no Sitemap"),
+            "robots-sitemap-elsewhere.txt": ("robots-sitemap", "/map.xml"),
+        }
+        for name, (rule, detail) in cases.items():
+            with self.subTest(name):
+                problems = self.problems(name)
+                self.assertEqual([rule], rules(problems))
+                self.assertIn(detail, problems[0].message)
+
+    def test_missing_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            problems = check.check_robots(Path(tmp) / "robots.txt")
+        self.assertEqual(["missing-file"], rules(problems))
+
+    def test_site_robots_passes(self):
+        self.assertEqual([], check.check_robots(REPO / "robots.txt"))
+
+
+class SitemapTest(unittest.TestCase):
+    """PR 5: sitemap.xml lists both pages, and every URL in it resolves."""
+
+    def problems(self, name):
+        return check.check_sitemap(FIXTURES / name, REPO, check.PAGES)
+
+    def test_valid_sitemap_passes(self):
+        self.assertEqual([], self.problems("sitemap-ok.xml"))
+
+    def test_each_fixture_fails_with_its_rule_only(self):
+        cases = {
+            "sitemap-invalid.xml": ("sitemap-invalid", "not well-formed"),
+            "sitemap-not-urlset.xml": ("sitemap-invalid", "urlset"),
+            "sitemap-missing-page.xml": ("sitemap-missing-page", "https://nicolasluraschi.dev/how-i-work/"),
+            "sitemap-dead-loc.xml": ("missing-target", "line 5"),
+            "sitemap-offsite-loc.xml": ("off-site-url", "https://cdn.test/"),
+        }
+        for name, (rule, detail) in cases.items():
+            with self.subTest(name):
+                problems = self.problems(name)
+                self.assertEqual([rule], rules(problems))
+                self.assertIn(detail, problems[0].message)
+
+    def test_loc_wrapped_in_whitespace_is_reported_at_its_own_line(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "sitemap.xml"
+            path.write_text((FIXTURES / "sitemap-ok.xml").read_text(encoding="utf-8").replace(
+                "</urlset>", "  <url><loc>\n    https://nicolasluraschi.dev/nope/\n  </loc></url>\n</urlset>\n<!-- end -->"),
+                encoding="utf-8")
+            problems = check.check_sitemap(path, REPO, check.PAGES)
+        self.assertEqual(["missing-target"], rules(problems))
+        self.assertIn("line 5", problems[0].message)
+
+    def test_missing_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            problems = check.check_sitemap(Path(tmp) / "sitemap.xml", Path(tmp), check.PAGES)
+        self.assertEqual(["missing-file"], rules(problems))
+
+    def test_site_sitemap_passes(self):
+        self.assertEqual([], check.check_sitemap(REPO / "sitemap.xml", REPO, check.PAGES))
+
+
+class PrintColourTest(unittest.TestCase):
+    """PR 5: black on white is the one colour exception, and only inside @media print."""
+
+    def problems(self, name):
+        path = FIXTURES / name
+        return check.check_css_colours(path.read_text(encoding="utf-8"), name)
+
+    def test_black_and_white_inside_print_pass(self):
+        self.assertEqual([], self.problems("css-print-ok.css"))
+
+    def test_other_literal_inside_print_fails(self):
+        problems = self.problems("css-print-colour.css")
+        self.assertEqual(["hard-coded-colour"], rules(problems))
+        self.assertIn("line 4", problems[0].message)
+
+    def test_colour_token_set_to_another_colour_inside_print_fails(self):
+        problems = self.problems("css-print-token-colour.css")
+        self.assertEqual(["print-colour"], rules(problems))
+        self.assertIn("--accent: #c00", problems[0].message)
+
+    def test_black_after_the_print_block_fails(self):
+        problems = self.problems("css-black-outside-print.css")
+        self.assertEqual(["hard-coded-colour"], rules(problems))
+        self.assertIn("line 6", problems[0].message)
+
+    def test_site_stylesheet_has_a_print_block(self):
+        css = (REPO / "style.css").read_text(encoding="utf-8")
+        self.assertEqual(1, len(check.print_spans(css)))
+
+
 class MainTest(unittest.TestCase):
     def run_main(self, argv, **kwargs):
         out = io.StringIO()
@@ -692,6 +892,14 @@ class MainTest(unittest.TestCase):
             code, output = self.run_main([], root=self.make_root(tmp, page))
         self.assertEqual(1, code)
         self.assertIn("index.html: placeholder:", output)
+
+    def test_exits_one_and_names_robots_and_sitemap_when_they_are_missing(self):
+        page = (REPO / "index.html").read_text(encoding="utf-8")
+        with tempfile.TemporaryDirectory() as tmp:
+            code, output = self.run_main([], root=self.make_root(tmp, page))
+        self.assertEqual(1, code)
+        self.assertIn("robots.txt: missing-file:", output)
+        self.assertIn("sitemap.xml: missing-file:", output)
 
     def test_external_flag_runs_only_the_link_fetcher(self):
         calls = []
