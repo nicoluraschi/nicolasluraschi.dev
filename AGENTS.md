@@ -29,8 +29,6 @@ defensible in an interview. Text first; the design serves the reading.
 | `CNAME` | Custom domain for GitHub Pages |
 | `docs/` | Constitution, architecture, ADRs, design references (`docs/design/DESIGN.md`) |
 
-Still to add: `CNAME`.
-
 ## Commands
 | Task | Command |
 |---|---|

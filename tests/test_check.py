@@ -182,7 +182,8 @@ class SrcsetLinksTest(unittest.TestCase):
 PLACEHOLDER_FIXTURES = (
     "placeholder-marker-text.html", "placeholder-marker-comment.html",
     "placeholder-marker-attribute.html", "placeholder-word.html", "placeholder-lorem.html",
-    "placeholder-example-host.html", "placeholder-hash-href.html", "placeholder-empty-href.html")
+    "placeholder-example-host.html", "placeholder-hash-href.html", "placeholder-empty-href.html",
+    "placeholder-coming.html")
 
 
 class PlaceholderTest(unittest.TestCase):
@@ -230,6 +231,14 @@ class PlaceholderTest(unittest.TestCase):
             with self.subTest(text):
                 self.assertEqual(["placeholder"], rules(self.page_problems(f"<p>{text}</p>")))
 
+    def test_coming_soon_copy_in_any_case_across_whitespace(self):
+        for text in ("Coming soon", "COMING  SOON", "Case study coming", "case\nstudy coming"):
+            with self.subTest(text):
+                self.assertEqual(["placeholder"], rules(self.page_problems(f"<p>{text}</p>")))
+
+    def test_coming_in_ordinary_copy_passes(self):
+        self.assertEqual([], self.page_problems("<p>Upcoming races, coming back soon after, the case study</p>"))
+
     def test_marker_token_is_the_whole_token(self):
         problems = self.page_problems("<p>YOUR-GITHUB_HANDLE-2 here</p>")
         self.assertIn("YOUR-GITHUB_HANDLE-2", problems[0].message)
@@ -270,6 +279,11 @@ class PlaceholderTest(unittest.TestCase):
 
     def test_malformed_url_is_not_a_dummy_and_does_not_raise(self):
         self.assertEqual([], self.page_problems('<a href="http://[x/">x</a><img srcset="http://[x/ 1x" alt="x">'))
+
+
+class CnameTest(unittest.TestCase):
+    def test_cname_names_the_apex_domain_only(self):
+        self.assertEqual("nicolasluraschi.dev", (REPO / "CNAME").read_text(encoding="utf-8").strip())
 
 
 class MalformedUrlTest(unittest.TestCase):
