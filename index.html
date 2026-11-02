@@ -30,33 +30,62 @@
     </div>
   </section>
 
+  <section aria-labelledby="about-h">
+    <h2 class="sec-h" id="about-h">About</h2>
+    <p class="prose">I spent nine years at one consultancy, working for clients in EdTech, fintech, e-commerce and B2B, so a new domain, codebase and team is the normal case for me. Leadership grew out of the work: from developer with extra responsibilities, to the technical reference on a five-year project, to Head of Technology. Going back to hands-on engineering is a choice, not a step back: I want to build again, and I bring the leadership view with me, making technical calls that account for people, process and the business.</p>
+    <p class="prose">Languages: Spanish (native) · English: professional working proficiency (B2)</p>
+  </section>
+
   <section aria-labelledby="work-h">
     <h2 class="sec-h" id="work-h">Selected work</h2>
 
     <article class="work">
       <div class="work-text">
+        <h3>Marginalia · <a href="https://readmarginalia.app" rel="noopener">readmarginalia.app</a> <span class="tag">invite-only</span></h3>
+        <p>A private reading journal in production: highlights captured from a photo with in-browser OCR, verified nightly backups with a restore runbook, data export and account deletion, an SSRF allowlist for fetching book covers, and image re-encoding.</p>
+        <dl class="stack">
+          <div><dt>Backend</dt><dd>Rails 8.1 API · Solid Queue · Solid Cache</dd></div>
+          <div><dt>Frontend</dt><dd>Next.js</dd></div>
+          <div><dt>Data &amp; hosting</dt><dd>PostgreSQL on Supabase · Render · Vercel · Cloudflare R2</dd></div>
+          <div><dt>Quality</dt><dd>85% backend coverage gate · Sentry</dd></div>
+        </dl>
+      </div>
+      <figure class="shot"><img src="/img/marginalia.png" width="1280" height="800" loading="lazy" alt="Marginalia: a reading library with the book in progress and shelves by status"></figure>
+    </article>
+
+    <article class="work">
+      <div class="work-text">
         <h3>RunHub · <a href="https://runhub.uy" rel="noopener">runhub.uy</a></h3>
         <p>A race-discovery platform for Uruguay, in production since August 2026 with a non-technical product owner. Before automating data entry I ran a blind LLM extraction test against hand-built ground truth, with the pass bar set in advance. It missed, so I redesigned the product around AI discovery with human approval, which is what runs today. About 1,850 automated tests, an 85% coverage gate and security scanning in CI.</p>
-        <p class="stack">Rails 8.1 API · PostgreSQL · Next.js · Gemini · Sentry</p>
+        <dl class="stack">
+          <div><dt>Backend</dt><dd>Rails 8.1 API · Avo admin</dd></div>
+          <div><dt>Frontend</dt><dd>Next.js</dd></div>
+          <div><dt>Data &amp; hosting</dt><dd>PostgreSQL · Render · Vercel · Cloudflare R2 · Bunny CDN</dd></div>
+          <div><dt>Quality</dt><dd>RSpec · Brakeman · gitleaks · Semgrep · Sentry</dd></div>
+          <div><dt>AI</dt><dd>Gemini with structured output</dd></div>
+        </dl>
       </div>
       <figure class="shot"><img src="/img/runhub.png" width="1280" height="800" loading="lazy" alt="RunHub home page: upcoming Uruguayan races with filters"></figure>
     </article>
 
     <article class="work">
       <div class="work-text">
-        <h3>Marginalia · <a href="https://readmarginalia.app" rel="noopener">readmarginalia.app</a><span class="tag">invite-only</span></h3>
-        <p>A private reading journal in production: highlights captured from a photo with in-browser OCR, verified nightly backups with a restore runbook, data export and account deletion.</p>
-        <p class="stack">Rails 8.1 API · Solid Queue · PostgreSQL on Supabase</p>
+        <h3>Winnow · <a href="https://winnow.page" rel="noopener">winnow.page</a> <span class="tag">in progress</span></h3>
+        <p>An information agent that picks what deserves your time against your own interests. An early build, not usable yet, and where I am learning TypeScript and Node.js on the backend.</p>
+        <dl class="stack">
+          <div><dt>Backend</dt><dd>TypeScript · Node.js (Fastify)</dd></div>
+          <div><dt>Frontend</dt><dd>Next.js</dd></div>
+          <div><dt>Data &amp; hosting</dt><dd>PostgreSQL · Render · Vercel</dd></div>
+        </dl>
       </div>
-      <figure class="shot"><img src="/img/marginalia.png" width="1280" height="800" loading="lazy" alt="Marginalia: a reading library with the book in progress and shelves by status"></figure>
     </article>
 
-    <p class="note">Both designed and owned by me, built with AI agents. Code is private; happy to walk you through it.</p>
+    <p class="note">All three designed and owned by me, built with AI agents. Code is private; happy to walk you through it.</p>
 
     <article class="work">
       <div class="work-text">
         <h3><a href="/how-i-work">How I work with AI →</a></h3>
-        <p>The workflow behind both products: risk-sized process, tests first, independent review, and hooks that enforce the rules.</p>
+        <p>The workflow behind all three: risk-sized process, tests first, independent review, and hooks that enforce the rules.</p>
       </div>
     </article>
   </section>
@@ -66,17 +95,25 @@
     <p class="org"><strong>Neocoast</strong> <span>· Montevideo software consultancy serving mainly US clients · 2017 – 2026</span></p>
 
     <article class="job">
-      <h3>Head of Technology <span class="dates">2024 – 2026</span></h3>
+      <div class="job-head">
+        <h3>Head of Technology</h3>
+        <p class="dates">2024 – 2026</p>
+      </div>
       <ul>
         <li>Co-led the engineering area, about 35 people across around ten concurrent client projects.</li>
         <li>Had three technical leads as direct reports; with them, defined minimum security standards for projects and redesigned how we interview experienced engineers.</li>
         <li>With the software architects, built the process to survey, track and document each project's technical standards.</li>
+        <li>Supervised an AI-assisted development pilot run by a sub-team with Claude Code and OpenCode. It produced quality and practice guides and grew into a company-wide AI-first effort.</li>
         <li>Stayed hands-on as sole backend developer and project lead on a B2B pricing and analytics platform: a Rails 7 API designed from scratch around the client's database functions, with Sidekiq, Action Cable and Docker on AWS ECS.</li>
+        <li>Covered an EdTech reading platform alone for a month: an undocumented microservices system with high technical debt. Used Claude Code throughout to fix critical bugs and ship requested features. Also led a technical audit of the platform, co-written with a coworker.</li>
       </ul>
     </article>
 
     <article class="job">
-      <h3>Software Engineer, junior to senior <span class="dates">2017 – 2024</span></h3>
+      <div class="job-head">
+        <h3>Software Engineer, junior to senior</h3>
+        <p class="dates">2017 – 2024</p>
+      </div>
       <ul>
         <li>Five years on a US EdTech platform for student retention, growing into its most senior developer and technical reference. Led the backend side of its migration from a Rails monolith to a Rails API with a React SPA, including token-based auth, and led its Ruby and Rails upgrades on a live system.</li>
         <li>Integrations (Twilio, Cronofy, Pusher, Slack), SSO, roles and permissions, and PostgreSQL optimization over large data volumes.</li>
@@ -85,8 +122,11 @@
     </article>
 
     <article class="job">
-      <h3>Independent <span class="dates">2026 – present</span></h3>
-      <p>RunHub and Marginalia, above.</p>
+      <div class="job-head">
+        <h3>Independent</h3>
+        <p class="dates">2026 – present</p>
+      </div>
+      <p>Marginalia, RunHub and Winnow, above.</p>
     </article>
   </section>
 
@@ -103,7 +143,7 @@
 
   <section aria-labelledby="now-h">
     <h2 class="sec-h" id="now-h">Now</h2>
-    <p class="prose">Running RunHub and Marginalia in production, and learning TypeScript and Node.js by building Winnow, an agent that picks what deserves your time.</p>
+    <p class="prose">Running RunHub and Marginalia in production, and learning TypeScript and Node.js by building Winnow.</p>
   </section>
 
   <section id="contact" aria-labelledby="contact-h">
