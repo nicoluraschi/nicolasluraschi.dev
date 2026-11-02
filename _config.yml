@@ -1,0 +1,17 @@
+# GitHub Pages builds main with Jekyll, which publishes every path not starting with `_` or `.`.
+# Only the site is served: every other top-level path is listed here. `npm run check:static`
+# fails when one is missing (SITE_PATHS in scripts/check.py lists the site). Keep this file to
+# this one key with one plain name per line: the check rejects any other key or syntax.
+exclude:
+  - AGENTS.md
+  - CLAUDE.md
+  - README.md
+  - docs
+  - lefthook.yml
+  - node_modules
+  - package-lock.json
+  - package.json
+  - playwright.config.mjs
+  - requirements-dev.txt
+  - scripts
+  - tests

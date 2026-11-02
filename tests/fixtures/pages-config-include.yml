@@ -1,0 +1,16 @@
+# Breaks one rule: include re-publishes a dot path Jekyll would otherwise skip.
+include:
+  - .claude
+exclude:
+  - AGENTS.md
+  - CLAUDE.md
+  - README.md
+  - docs
+  - lefthook.yml
+  - node_modules
+  - package-lock.json
+  - package.json
+  - playwright.config.mjs
+  - requirements-dev.txt
+  - scripts
+  - tests

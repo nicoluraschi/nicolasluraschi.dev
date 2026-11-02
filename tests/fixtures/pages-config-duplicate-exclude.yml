@@ -1,0 +1,15 @@
+# Breaks one rule: two exclude keys. Jekyll keeps only the last, which lets scripts/ through.
+exclude:
+  - scripts
+exclude:
+  - AGENTS.md
+  - CLAUDE.md
+  - README.md
+  - docs
+  - lefthook.yml
+  - node_modules
+  - package-lock.json
+  - package.json
+  - playwright.config.mjs
+  - requirements-dev.txt
+  - tests

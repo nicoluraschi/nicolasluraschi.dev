@@ -1,0 +1,15 @@
+# Breaks one rule: Jekyll also excludes by prefix, so `favicon` drops favicon.png and favicon.svg.
+exclude:
+  - AGENTS.md
+  - CLAUDE.md
+  - README.md
+  - docs
+  - favicon
+  - lefthook.yml
+  - node_modules
+  - package-lock.json
+  - package.json
+  - playwright.config.mjs
+  - requirements-dev.txt
+  - scripts
+  - tests

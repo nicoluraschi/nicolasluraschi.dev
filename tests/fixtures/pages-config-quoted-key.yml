@@ -1,0 +1,15 @@
+# Breaks one rule: a quoted second key Jekyll reads (and keeps, as the last) but a plain-key scan misses.
+exclude:
+  - AGENTS.md
+  - CLAUDE.md
+  - README.md
+  - docs
+  - lefthook.yml
+  - node_modules
+  - package-lock.json
+  - package.json
+  - playwright.config.mjs
+  - requirements-dev.txt
+  - scripts
+  - tests
+"exclude": []
