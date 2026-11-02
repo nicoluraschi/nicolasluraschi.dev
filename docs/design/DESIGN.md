@@ -26,9 +26,11 @@ header > main (hero, About, Selected work, Experience, Toolbox, Now, Contact) > 
 - Contact: the CV link is `.cv` (largest, bold). It is a text link, not a button.
 
 ## Structure (essay)
-`body.essay-page` > header > `main.essay` > `article`. Headings: one `h1`, section titles `h2`.
+`body.essay-page` > header > `main.essay` > `article` > `header.essay-head` (h1, lead, pull-quote), `nav.toc` (the contents list), `div.essay-body` (one `section` with an `id` and an `h2` per entry in the contents). Headings: one `h1`, section titles `h2`.
+- Layout: one column with the contents first; from 70em the page is 70rem wide and `nav.toc` is a sticky left column (CSS `position: sticky`). Prose keeps the 37rem measure; anything with `.diagram` spans the content column. A new section gets a contents link, in the same order.
 - `.pullquote` = the one-line takeaway (keep it to one short sentence).
-- `ol.flow` is a visual summary of the numbered list under it. It is `aria-hidden`. If the six steps change, update BOTH the diagram and the list. Chips (`.chip`) mark who decides; keep them to 2-4 words.
+- Diagrams (`.diagram`, cards on `--surface` with a hairline): `ul.roles` (who does what), `ol.flow`, `table.risk` (process sized by risk, a real table with `th scope`; below 45em each row stacks into a card, its lanes labelled from each cell's `data-lane`), `figure.guards` (what the hooks block). Their labels stay `--muted`; only the flow numbers take the accent.
+- `ol.flow` is a visual summary of the numbered list under it. It is `aria-hidden`, the only diagram that is. If the six steps change, update BOTH the diagram and the list (`tests/browser/essay.spec.mjs` compares them). Chips (`.chip`) mark who decides; keep them to 2-4 words.
 
 ## What depends on text length
 - Nothing in the layout relies on exact line counts.
@@ -36,7 +38,7 @@ header > main (hero, About, Selected work, Experience, Toolbox, Now, Contact) > 
 
 ## Tokens
 Type: 14 / 17 / 20 / 24 / 32 / 44px on phone; base 18, lead 24, h3 30, pull quote 40, h1 72px from 45em.
-Spacing: 4 / 8 / 12 / 16 / 24 / 40 / 56 / 80px. Measure: 37rem (~68 characters). Breakpoint: 45em.
+Spacing: 4 / 8 / 12 / 16 / 24 / 40 / 56 / 80px. Measure: 37rem (~68 characters). Breakpoints: 45em; 70em for the essay's contents column.
 Light: bg #F6F1EB, surface #ECE0D3, text #1E1915, muted #5C5047, hairline #DDD0C2, accent #A33D1A.
 Dark: bg #15110E, surface #241B15, text #F0E8E0, muted #B9A898, hairline #3A2E25, accent #EE9466.
 Lowest pair: light accent on surface, 4.99:1. Every rendered text pair is checked in both schemes by `tests/browser/contrast.spec.mjs`.
