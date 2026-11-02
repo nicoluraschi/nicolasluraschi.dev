@@ -1,0 +1,8 @@
+/* Defect: a fallback tuned badly (half as wide again as Fraunces), so the swap rewraps the text and
+   moves everything under it. Georgia on macOS, Liberation Serif on Linux. */
+@font-face {
+  font-family: "Mistuned fallback";
+  src: local("Georgia"), local("Liberation Serif");
+  size-adjust: 150%;
+}
+body { font-family: Fraunces, "Mistuned fallback", serif; }

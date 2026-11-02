@@ -11,7 +11,8 @@ top-level path is neither part of the site (`SITE_PATHS`) nor excluded. Each pag
 ## Decisions
 - Plain HTML and one CSS file, no framework, no JavaScript: `docs/adr/0001-plain-static-html.md`.
 - One self-hosted font, Fraunces (`fonts/`, SIL OFL 1.1), preloaded, `font-display: swap`; no
-  third-party font service, so no request leaves the domain.
+  third-party font service, so no request leaves the domain. While it loads, a metric-adjusted
+  `local()` fallback (tuned for Linux's Liberation Serif) keeps the swap from moving the page.
 - Visibility: the repo stays **private with Pages off** until the owner approves launch. GitHub
   Pages on the free plan needs a public repo, so launch is one sequence: make the repo public,
   enable Pages from `main` with the custom domain, add the DNS records below, enforce HTTPS, then

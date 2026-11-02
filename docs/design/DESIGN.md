@@ -42,9 +42,10 @@ Spacing: 4 / 8 / 12 / 16 / 24 / 40 / 56 / 80px. Measure: 37rem (~68 characters).
 Light: bg #F6F1EB, surface #ECE0D3, text #1E1915, muted #5C5047, hairline #DDD0C2, accent #A33D1A.
 Dark: bg #15110E, surface #241B15, text #F0E8E0, muted #B9A898, hairline #3A2E25, accent #EE9466.
 Lowest pair: light accent on surface, 4.99:1. Every rendered text pair is checked in both schemes by `tests/browser/contrast.spec.mjs`.
+Font fallback: while Fraunces loads, `"Fraunces fallback"` (body) and `"Fraunces fallback display"` (`h1`, `.pullquote`, through `--font-display`) are Liberation Serif with `size-adjust` and ascent/descent overrides, so Linux barely moves on the swap. Charter and Georgia (Apple, Windows) are untuned: they already wrap like Fraunces. Nothing changes once Fraunces has loaded. A swap that moves a page by more than 0.02 at any tested width fails `tests/browser/font-swap.spec.mjs` (CI runs it on Linux); after changing copy above the fold, re-tune if it does.
 Print: black on white in either scheme (the only colours outside the tokens, inside `@media print`); no header, skip link or contents; external links show their URL.
 Favicon: "NL" monogram in the accent (`favicon.svg`, swaps to the dark accent; `favicon.png` 32px fallback). Link-preview card: `img/og.png`, 1200x630, rendered from `scripts/_og-card.html`.
 
 ## Not done yet
 - RunHub case study page.
-- Font fallback metric tuning (`size-adjust`) to reduce layout shift while the font loads; the font is preloaded and uses `font-display: swap`.
+- Font fallback tuning for Android (Noto Serif): not measured.

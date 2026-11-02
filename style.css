@@ -11,11 +11,47 @@
   font-display: swap;
 }
 
+/* Metric-adjusted fallbacks, so the page barely moves when Fraunces swaps in. Tuned for Liberation
+   Serif, Chromium's serif on Linux; on Apple and Windows, Charter and Georgia already wrap like
+   Fraunces and tuning them measured no gain. Measured in Chromium: Fraunces' ascent is 97.8% and
+   its descent 25.5% of the em, no line gap; each override is that divided by size-adjust.
+   size-adjust is Fraunces' width over Liberation's on the site's copy at body size (110%), then
+   checked against the layout shift (tests/browser/font-swap.spec.mjs). Fraunces is narrower at
+   display optical sizes, so h1 and the pull quote use their own face (103%). */
+@font-face {
+  font-family: "Fraunces fallback";
+  src: local("Liberation Serif");
+  font-weight: 400 500;
+  size-adjust: 110%;
+  ascent-override: 88.91%;
+  descent-override: 23.18%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Fraunces fallback";
+  src: local("Liberation Serif Bold");
+  font-weight: 600 700;
+  size-adjust: 111%;
+  ascent-override: 88.11%;
+  descent-override: 22.97%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Fraunces fallback display";
+  src: local("Liberation Serif");
+  font-weight: 400 500;
+  size-adjust: 103%;
+  ascent-override: 94.95%;
+  descent-override: 24.76%;
+  line-gap-override: 0%;
+}
+
 /* ---------- Tokens ---------- */
 :root {
   color-scheme: light dark;
 
-  --font: Fraunces, Charter, "Iowan Old Style", Georgia, serif;
+  --font: Fraunces, "Fraunces fallback", Charter, "Iowan Old Style", Georgia, serif;
+  --font-display: Fraunces, "Fraunces fallback display", Charter, "Iowan Old Style", Georgia, serif; /* h1, pull quote */
 
   /* Colour: light */
   --bg: #F6F1EB;
@@ -162,6 +198,7 @@ a[href^="https:"]::after {
 /* ---------- Headings ---------- */
 h1 {
   margin: 0;
+  font-family: var(--font-display);
   font-size: var(--text-3xl);
   line-height: var(--leading-tight);
   letter-spacing: -0.03em;
@@ -308,6 +345,7 @@ h3 {
   margin: var(--space-6) 0;
   padding-top: var(--space-4);
   border-top: 2px solid var(--accent);
+  font-family: var(--font-display);
   font-size: var(--text-2xl);
   line-height: 1.15;
   font-weight: 500;
