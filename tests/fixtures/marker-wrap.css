@@ -1,0 +1,3 @@
+/* Defect: the box fits the link text but not its marker, and the link may wrap. */
+.narrow { width: 6.2em; }
+.narrow a { white-space: normal; }

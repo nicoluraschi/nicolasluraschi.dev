@@ -28,6 +28,30 @@ export async function horizontalOverflow(page) {
   return scrollWidth <= innerWidth ? [] : [`scrollWidth ${scrollWidth} > viewport ${innerWidth}`];
 }
 
+// The external-link marker (an inline-block ::after) must sit on the line of the link's last
+// character. A marker that wraps alone opens a new line box, so the link's last client rect
+// starts a line below that character. Tops are compared, not top against bottom: in a tight
+// heading the glyph box is taller than the line, so consecutive lines' boxes overlap.
+export async function markerWrapFailures(page) {
+  await page.evaluate(() => document.fonts.ready);
+  return page.locator('a[href^="https:"]').evaluateAll((links) => links.flatMap((link) => {
+    const texts = [];
+    const walker = document.createTreeWalker(link, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) if (walker.currentNode.textContent.trim()) texts.push(walker.currentNode);
+    const last = texts.at(-1);
+    const end = last.textContent.trimEnd().length;
+    const range = document.createRange();
+    range.setStart(last, end - 1);
+    range.setEnd(last, end);
+    const char = range.getBoundingClientRect();
+    const rects = link.getClientRects();
+    const marker = rects[rects.length - 1];
+    return marker.top > char.top + char.height / 2
+      ? [`"${link.textContent.trim()}": marker on a line below the text (top ${marker.top} vs ${char.top})`]
+      : [];
+  }));
+}
+
 // Alpha of a computed CSS colour: "transparent" is 0; "... / a)" (rgb, color(), oklch(), lab())
 // and the legacy 4-argument rgba()/hsla() carry it; a colour with no alpha is opaque (1).
 export function colourAlpha(value) {

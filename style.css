@@ -109,7 +109,9 @@ a:focus-visible {
   outline-offset: 3px;
   border-radius: 2px;
 }
-/* External-link marker; the second declaration gives it an empty text alternative. */
+/* External-link marker; the second declaration gives it an empty text alternative. The link does
+   not wrap, so the marker cannot drop onto a line of its own. */
+a[href^="https:"] { white-space: nowrap; }
 a[href^="https:"]::after {
   content: "\2197";
   content: "\2197" / "";
@@ -484,6 +486,7 @@ h3 {
     content: " (" attr(href) ")";
     display: inline;
     font-size: 0.8em;
+    white-space: normal;          /* the link itself is nowrap; its printed URL may wrap */
     overflow-wrap: anywhere;
   }
   .job, .work, .diagram, .essay .flow li, .essay .roles li, .risk tr { break-inside: avoid; }
