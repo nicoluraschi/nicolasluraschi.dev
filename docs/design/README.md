@@ -5,7 +5,7 @@ the `frontend-iteration` skill reads it before writing HTML or CSS.
 ## Files
 | File | What it is | Authority | Do not take |
 |---|---|---|---|
-| `DESIGN.md` | The final design handoff (direction "H3"): editing rules, page structure, tokens, open items | The look: layout, structure, type scale, spacing, colour values, the self-hosted Fraunces font | Its "Still to add" and "Not done yet" lists are status, not scope: each item is the owner's pick |
+| `DESIGN.md` | The final design handoff (direction "H3"): editing rules, page structure, tokens, open items | The look: layout, structure, type scale, spacing, colour values, the self-hosted Fraunces font | Its "Not done yet" list is status, not scope: each item is the owner's pick |
 
 ## Fixed before any reference
 These were decided with the owner and no design output overrides them:
