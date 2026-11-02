@@ -34,7 +34,8 @@ already verified on the GitHub account (TXT record), which blocks takeover while
   outage reads as that step failing. While the repo is private these minutes count against the
   shared Actions quota.
 - Site checks, by what proves them. `scripts/check.py` (Python stdlib): forbidden markup, internal
-  links and assets, contrast from the CSS tokens, and with `--external` the outside links.
+  links and assets (`srcset` candidates included), malformed URLs, leftover placeholders, contrast
+  from the CSS tokens, and with `--external` the outside links.
   html-validate: HTML validity. Playwright with axe (Chromium, loopback server, light and dark):
   WCAG A/AA, no horizontal scroll at 320 and 360px, visible keyboard focus, 44px tap targets,
   reduced motion. Each check has a failing fixture under `tests/fixtures/` that must keep failing.

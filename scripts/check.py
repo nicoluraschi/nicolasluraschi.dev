@@ -11,11 +11,6 @@ from pathlib import Path
 from typing import NamedTuple
 from urllib.parse import unquote, urljoin, urlsplit
 
-# Placeholders that do not exist yet. PR 3 (the placeholder check) adds the files and empties this
-# list; widening it is a visible diff.
-EXCLUDED = frozenset({"/luraschi-cv.pdf", "/img/runhub.png", "/img/marginalia.png"})
-
-
 class Problem(NamedTuple):
     file: str
     rule: str
@@ -80,17 +75,27 @@ def _ids_of(path):
     return frozenset(parse(path).ids)
 
 
+def _split(url):
+    """urlsplit, or None when the URL is malformed (the link checks report it)."""
+    try:
+        return urlsplit(url)
+    except ValueError:
+        return None
+
+
 def _is_internal(url):
-    parts = urlsplit(url)
-    return not parts.scheme and not parts.netloc
+    parts = _split(url)
+    return parts is not None and not parts.scheme and not parts.netloc
+
+
+def _malformed(source, line, url):
+    return Problem(str(source), "malformed-url", f"line {line}: {url} is not a valid URL")
 
 
 def _check_url(url, source, line, root, base_url):
     """Resolve one internal URL against the repo root. Returns a Problem or None."""
     parts = urlsplit(urljoin(base_url, url))
     url_path = unquote(parts.path)
-    if url_path in EXCLUDED:
-        return None
     root = root.resolve()
     where = f"line {line}"
     if "\0" in url_path:
@@ -109,16 +114,113 @@ def _check_url(url, source, line, root, base_url):
     return None
 
 
+ASCII_WHITESPACE = " \t\n\f\r"
+
+
+def _srcset_urls(value):
+    """Candidate URLs of a srcset, as the HTML parsing rule reads them (ASCII whitespace only)."""
+    urls = []
+    i, n = 0, len(value)
+    while True:
+        while i < n and (value[i] in ASCII_WHITESPACE or value[i] == ","):
+            i += 1
+        if i >= n:
+            return urls
+        start = i
+        while i < n and value[i] not in ASCII_WHITESPACE:
+            i += 1
+        url = value[start:i]
+        if url.endswith(","):
+            urls.append(url.rstrip(","))
+            continue
+        urls.append(url)
+        # The HTML rule has one in-parentheses state: "(" enters it, the first ")" leaves it.
+        in_parens = False
+        while i < n and not (value[i] == "," and not in_parens):
+            if value[i] == "(":
+                in_parens = True
+            elif value[i] == ")":
+                in_parens = False
+            i += 1
+
+
+SRCSET_ATTRIBUTES = ("srcset", "imagesrcset")
+
+
+def _attr_urls(attrs):
+    """(attribute, url) for every URL a tag points at: URL attributes and srcset candidates."""
+    for name, value in attrs.items():
+        if name in URL_ATTRIBUTES:
+            if value.strip():
+                yield name, value.strip()
+        elif name in SRCSET_ATTRIBUTES:
+            for url in _srcset_urls(value):
+                yield name, url
+
+
 def check_links(path, root, url_path):
-    """Every internal href and src of a page resolves (AC2). url_path is the page's own URL path."""
+    """Every internal URL of a page resolves and none is malformed (AC2). url_path is the page's own URL path."""
     problems = []
     for tag, attrs, line in parse(path).tags:
-        for name in ("href", "src"):
-            url = attrs.get(name, "").strip()
-            if url and _is_internal(url):
+        for _, url in _attr_urls(attrs):
+            if _split(url) is None:
+                problems.append(_malformed(path, line, url))
+            elif _is_internal(url):
                 problem = _check_url(url, path, line, root, url_path)
                 if problem:
                     problems.append(problem)
+    return problems
+
+
+PLACEHOLDER_PATTERN = re.compile(
+    r"\bYOUR-[A-Z][A-Z0-9_-]*|\b(?:TODO|TBD|FIXME|XXX)\b|(?i:lorem\s+ipsum)")
+DUMMY_HOST = re.compile(r"(?:.+\.)?example\.(?:com|org|net)", re.IGNORECASE)
+
+
+class _Placeholders(HTMLParser):
+    """Collects (line, where, value): text and comments as read, attributes by name."""
+
+    def __init__(self, text):
+        super().__init__(convert_charrefs=True)
+        self.found = []
+        self.feed(text)
+        self.close()
+
+    def handle_data(self, data):
+        self.found.append((self.getpos()[0], "text", data))
+
+    def handle_comment(self, data):
+        self.found.append((self.getpos()[0], "comment", data))
+
+    def handle_starttag(self, tag, attrs):
+        for name, value in attrs:
+            self.found.append((self.getpos()[0], name, value or ""))
+
+    handle_startendtag = handle_starttag
+
+
+def _is_dummy_url(url):
+    # Browsers read "\" as "/" in http(s) URLs and ignore a trailing dot on the host.
+    parts = _split(url.replace("\\", "/"))
+    host = parts.hostname if parts else None  # a malformed URL is check_links' to report
+    return host is not None and DUMMY_HOST.fullmatch(host.rstrip(".")) is not None
+
+
+def check_placeholders(path):
+    """Marker tokens, filler text, dummy hosts and empty links left in a page (rule placeholder)."""
+    problems = []
+
+    def add(line, token, where):
+        problems.append(Problem(str(path), "placeholder", f"line {line}: {token} in {where}"))
+
+    for line, where, value in _Placeholders(Path(path).read_text(encoding="utf-8")).found:
+        for match in PLACEHOLDER_PATTERN.finditer(value):
+            add(line + value.count("\n", 0, match.start()), match.group(), where)
+        for _, url in _attr_urls({where: value}):
+            if _is_dummy_url(url):
+                add(line, url, where)
+        if where == "href" and value.strip() in ("", "#"):
+            add(line, repr(value), where)
     return problems
 
 
@@ -220,8 +322,12 @@ def check_css_assets(path, root, url_path):
     text = Path(path).read_text(encoding="utf-8")
     for match in re.finditer(r"url\(\s*(['\"]?)(.*?)\1\s*\)", text):
         url = match.group(2).strip()
-        if url and _is_internal(url):
-            line = text.count("\n", 0, match.start()) + 1
+        if not url:
+            continue
+        line = text.count("\n", 0, match.start()) + 1
+        if _split(url) is None:
+            problems.append(_malformed(path, line, url))
+        elif _is_internal(url):
             problem = _check_url(url, path, line, root, url_path)
             if problem:
                 problems.append(problem)
@@ -239,11 +345,11 @@ def external_urls(path):
     """http(s) and protocol-relative links of a page. mailto: and tel: are never fetched."""
     urls = []
     for _, attrs, _ in parse(path).tags:
-        for name in ("href", "src"):
-            url = attrs.get(name, "").strip()
+        for _, url in _attr_urls(attrs):
             if url.startswith("//"):
                 url = "https:" + url
-            if urlsplit(url).scheme in ("http", "https") and url not in urls:
+            parts = _split(url)
+            if parts and parts.scheme in ("http", "https") and url not in urls:
                 urls.append(url)
     return urls
 
@@ -347,6 +453,7 @@ def main(argv=None, root=ROOT, external_checker=check_external_url):
         for page, url_path in PAGES:
             problems += check_forbidden(root / page)
             problems += check_links(root / page, root, url_path)
+            problems += check_placeholders(root / page)
         css_file, css_url = STYLESHEET
         css = (root / css_file).read_text(encoding="utf-8")
         problems += check_css_assets(root / css_file, root, css_url)

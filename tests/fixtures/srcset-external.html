@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Fixture: external srcset candidates</title>
+<link rel="preload" as="image" imagesrcset="http://cdn.test/c.png 2x">
+</head>
+<body>
+<main id="main">
+<img srcset="https://cdn.test/a.png 1x, //cdn.test/b.png 2x" width="10" height="10" alt="External candidates are not resolved locally">
+</main>
+</body>
+</html>

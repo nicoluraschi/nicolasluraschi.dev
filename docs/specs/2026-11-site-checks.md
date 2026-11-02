@@ -1,5 +1,5 @@
 # Site checks and CI — spec
-**Status:** approved
+**Status:** done
 **Date:** 2026-11-01
 
 ## 1. Outcome
