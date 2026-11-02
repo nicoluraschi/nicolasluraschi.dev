@@ -47,8 +47,9 @@ static checks (`npm run check:static` and `check:html`: no network, no browser).
 history, then `npm run check` (adds the self-tests and browser checks) and `npm run check:external`.
 
 ## Conventions
-- Semantic HTML, mobile-first CSS, light and dark through `prefers-color-scheme`. One font stack,
-  one accent colour.
+- Semantic HTML, mobile-first CSS, light and dark through `prefers-color-scheme`. One font,
+  Fraunces (`--font`, and `--font-display` for `h1` and the pull quote, which differ only in the
+  fallback shown while it loads), one accent colour.
 - The design is final (`docs/design/DESIGN.md`). Don't redesign; flag anything that looks wrong
   before changing it. Key rules:
   - No JavaScript, extra fonts, gradients, shadows or emoji.

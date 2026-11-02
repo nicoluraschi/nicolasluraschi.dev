@@ -11,7 +11,8 @@ the `frontend-iteration` skill reads it before writing HTML or CSS.
 These were decided with the owner and no design output overrides them:
 - Plain semantic HTML and one `style.css`; no JavaScript, no framework, no web-font service
   unless the owner approves it. The owner approved one self-hosted font, Fraunces (`fonts/`).
-- Text first. One font stack, one accent colour.
+- Text first. One font, one accent colour. (Two stacks, `--font` and `--font-display`, differ only
+  in the metric-adjusted fallback shown while Fraunces loads.)
 - Light and dark via `prefers-color-scheme`; both must meet WCAG AA contrast.
 - Mobile-first; readable at 320px wide with no horizontal scroll.
 

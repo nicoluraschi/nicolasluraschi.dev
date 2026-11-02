@@ -28,6 +28,48 @@ export async function horizontalOverflow(page) {
   return scrollWidth <= innerWidth ? [] : [`scrollWidth ${scrollWidth} > viewport ${innerWidth}`];
 }
 
+// Layout shift while Fraunces swaps in late: the woff2 is held until the page has painted in the
+// fallback, then released. Only shifts after the release count, so the score is the swap's alone.
+export const FONT_URL = '**/fonts/fraunces-latin.woff2';
+
+// DOMContentLoaded does not wait for stylesheets, and the @font-face rules exist only once they
+// are parsed; the load event cannot be awaited while the font is held.
+export const stylesheetsParsed = (page) =>
+  page.waitForFunction(() => [...document.querySelectorAll('link[rel="stylesheet"]')].every((link) => link.sheet));
+
+export async function fontSwapShiftFailures(page, url, budget) {
+  let release;
+  const held = new Promise((resolve) => { release = resolve; });
+  await page.route(FONT_URL, async (route) => { await held; await route.continue(); });
+  await page.addInitScript(() => {
+    window.__swapShift = { counting: false, total: 0, sources: [] };
+    new PerformanceObserver((list) => {
+      const state = window.__swapShift;
+      for (const entry of list.getEntries()) {
+        if (!state.counting || entry.hadRecentInput) continue;
+        state.total += entry.value;
+        for (const { node } of entry.sources) {
+          if (node) state.sources.push(node.nodeType === 3 ? '#text' : node.tagName.toLowerCase() + [...node.classList].map((c) => `.${c}`).join(''));
+        }
+      }
+    }).observe({ type: 'layout-shift', buffered: true });
+  });
+  await page.goto(url, { waitUntil: 'domcontentloaded' });
+  await stylesheetsParsed(page);
+  // Past swap's block period (at most 100 ms), so the fallback is on screen as a reader sees it,
+  // and two frames, so shifts from the first layout are reported before counting starts.
+  const frames = () => page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+  await page.waitForTimeout(150);
+  await frames();
+  if (await page.evaluate(() => document.fonts.check('16px Fraunces'))) return ['Fraunces loaded before it was released'];
+  await page.evaluate(() => { window.__swapShift.counting = true; });
+  release();
+  await page.evaluate(() => document.fonts.ready);
+  await frames();
+  const { total, sources } = await page.evaluate(() => window.__swapShift);
+  return total <= budget ? [] : [`layout shift ${total.toFixed(4)} > ${budget} (moved: ${[...new Set(sources)].join(', ')})`];
+}
+
 // The external-link marker (an inline-block ::after) must sit on the line of the link's last
 // character. A marker that wraps alone opens a new line box, so the link's last client rect
 // starts a line below that character. Tops are compared, not top against bottom: in a tight
