@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { PAGES, SCHEMES } from './helpers.mjs';
+import { PAGES, SCHEMES, horizontalOverflow } from './helpers.mjs';
 
 // PR 5 print stylesheet. 700px is about an A4 page inside its margins, so the phone-width rules
 // would apply if the print rules did not override them.
@@ -53,6 +53,13 @@ for (const scheme of SCHEMES) {
     expect(unbroken).toEqual(new Set(['.job', '.work']));
   });
 }
+
+test('a printed external URL wraps instead of running past a narrow page', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.goto('/');
+  await page.emulateMedia({ media: 'print' });
+  expect(await horizontalOverflow(page)).toEqual([]);
+});
 
 test('on screen the external-link marker stays an arrow', async ({ page }) => {
   await page.goto('/');
