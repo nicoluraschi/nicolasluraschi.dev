@@ -2,6 +2,7 @@
 import functools
 import http.client
 import re
+import subprocess
 import sys
 import time
 import urllib.error
@@ -552,6 +553,67 @@ def check_sitemap(path, root, pages):
     return problems
 
 
+# ---------- Published paths: GitHub Pages builds main with Jekyll ----------
+# The only top-level paths served. Every other one must be in _config.yml's exclude list.
+SITE_PATHS = ("CNAME", "favicon.png", "favicon.svg", "fonts", "how-i-work", "img", "index.html",
+              "luraschi-cv.pdf", "robots.txt", "sitemap.xml", "style.css")
+
+
+def tracked_names(root):
+    """Top-level names of the files git tracks under root."""
+    out = subprocess.run(["git", "ls-files", "-z"], cwd=root, capture_output=True, check=True).stdout
+    return {name.split("/", 1)[0] for name in out.decode("utf-8").split("\0") if name}
+
+
+# A YAML comment needs whitespace before `#`; YAML whitespace is space and tab only.
+_COMMENT = r"(?:[ \t]+#.*)?[ \t]*"
+# Words YAML 1.1 (Jekyll's Psych) reads as a boolean or null, not as a file name.
+_YAML_WORDS = {"y", "n", "yes", "no", "true", "false", "on", "off", "null"}
+
+
+def _read_config(text, config):
+    """(excluded names, problems). The config may hold one `exclude:` block list, each item
+    `  - name` (two spaces, a name starting with a letter), comments and blank lines; any other
+    line (another key, quotes, globs, a flow list, other indents) is a problem, so what Jekyll
+    reads and what this check reads cannot drift apart."""
+    items, problems, keys = set(), [], 0
+    for n, line in enumerate(text.splitlines(), 1):
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        item = re.fullmatch(r"  - ([A-Za-z][\w.-]*)" + _COMMENT, line)
+        if re.fullmatch(r"exclude:" + _COMMENT, line):
+            keys += 1
+            if keys == 1:
+                continue
+            message = "more than one exclude key; Jekyll keeps only the last"
+        elif keys and item and item.group(1).lower() not in _YAML_WORDS:
+            items.add(item.group(1))
+            continue
+        else:
+            message = f"{line.strip()} is not read; keep one `exclude:` list of plain names"
+        problems.append(Problem(str(config), "pages-config", f"line {n}: {message}"))
+    return items, problems
+
+
+def check_published(config, names):
+    """Jekyll publishes every name not starting with `_` or `.`: each must be a site path or
+    excluded, and no site path excluded (Jekyll also excludes by prefix)."""
+    if not Path(config).is_file():
+        return _missing_file(config)
+    excluded, problems = _read_config(Path(config).read_text(encoding="utf-8"), config)
+    for name in sorted(names):
+        if name.startswith(("_", ".")):
+            continue
+        if name in SITE_PATHS:
+            if any(name.startswith(entry) for entry in excluded):
+                problems.append(Problem(str(config), "excluded-site-path", f"{name} is part of the site but excluded"))
+        elif name not in excluded:
+            problems.append(Problem(
+                str(config), "published-dev-path",
+                f"{name} would be published: add it to exclude, or to SITE_PATHS if it is part of the site"))
+    return problems
+
+
 # ---------- External links (--external only) ----------
 TIMEOUT = 10
 ATTEMPTS = 3
@@ -675,6 +737,11 @@ def main(argv=None, root=ROOT, external_checker=check_external_url):
             problems += check_head(root / page, root, url_path)
         problems += check_robots(root / "robots.txt")
         problems += check_sitemap(root / "sitemap.xml", root, PAGES)
+        try:
+            problems += check_published(root / "_config.yml", tracked_names(root))
+        except subprocess.CalledProcessError as error:
+            message = error.stderr.decode("utf-8", "replace").strip()
+            problems.append(Problem(str(root), "not-a-checkout", f"git ls-files failed: {message}"))
         css_file, css_url = STYLESHEET
         css = (root / css_file).read_text(encoding="utf-8")
         problems += check_css_assets(root / css_file, root, css_url)

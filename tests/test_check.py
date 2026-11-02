@@ -847,6 +847,109 @@ class PrintColourTest(unittest.TestCase):
         self.assertEqual(1, len(check.print_spans(css)))
 
 
+class PublishedPathsTest(unittest.TestCase):
+    """GitHub Pages (Jekyll) publishes only the site: every other top-level path is excluded."""
+
+    DEV = ("AGENTS.md", "CLAUDE.md", "README.md", "docs", "lefthook.yml", "node_modules",
+           "package-lock.json", "package.json", "playwright.config.mjs", "requirements-dev.txt",
+           "scripts", "tests")
+    # Names Jekyll skips on its own: they need no exclude entry.
+    HIDDEN = (".github", ".claude", "_config.yml")
+
+    def problems(self, name, extra=()):
+        return check.check_published(FIXTURES / name, check.SITE_PATHS + self.DEV + self.HIDDEN + extra)
+
+    def test_config_excluding_every_dev_path_passes(self):
+        self.assertEqual([], self.problems("pages-config-ok.yml"))
+
+    def test_dev_path_not_excluded_fails(self):
+        problems = self.problems("pages-config-missing-scripts.yml")
+        self.assertEqual(["published-dev-path"], rules(problems))
+        self.assertIn("scripts", problems[0].message)
+
+    def test_site_path_excluded_fails(self):
+        problems = self.problems("pages-config-excludes-site.yml")
+        self.assertEqual(["excluded-site-path"], rules(problems))
+        self.assertIn("img", problems[0].message)
+
+    def test_site_path_excluded_by_prefix_fails(self):
+        # Jekyll matches an exclude entry as a path prefix too.
+        problems = self.problems("pages-config-excludes-prefix.yml")
+        self.assertEqual(["excluded-site-path"] * 2, rules(problems))
+        self.assertIn("favicon.png", problems[0].message)
+
+    def test_unread_list_syntax_fails_closed(self):
+        problems = self.problems("pages-config-flow-list.yml")
+        self.assertEqual(["pages-config"] + ["published-dev-path"] * len(self.DEV), rules(problems))
+        self.assertIn("line 2", problems[0].message)
+
+    def test_quoted_key_fails(self):
+        problems = self.problems("pages-config-quoted-key.yml")
+        self.assertEqual(["pages-config"], rules(problems))
+        self.assertIn('"exclude"', problems[0].message)
+
+    def test_new_top_level_path_fails_until_listed(self):
+        problems = self.problems("pages-config-ok.yml", extra=("notes.txt",))
+        self.assertEqual(["published-dev-path"], rules(problems))
+        self.assertIn("notes.txt", problems[0].message)
+
+    def test_second_exclude_key_fails(self):
+        problems = self.problems("pages-config-duplicate-exclude.yml")
+        self.assertEqual(["pages-config"], rules(problems))
+        self.assertIn("exclude", problems[0].message)
+
+    def test_include_key_fails(self):
+        problems = self.problems("pages-config-include.yml")
+        self.assertEqual(["pages-config"] * 2, rules(problems))
+        self.assertIn("include", problems[0].message)
+        self.assertIn(".claude", problems[1].message)
+
+    def config_problems(self, text):
+        with tempfile.TemporaryDirectory() as tmp:
+            config = Path(tmp) / "_config.yml"
+            config.write_text(text, encoding="utf-8")
+            return check.check_published(config, check.SITE_PATHS + self.DEV)
+
+    def test_lines_yaml_reads_differently_fail(self):
+        # Each line passes a loose reading but YAML (Psych) reads it otherwise, or rejects it.
+        items = "".join(f"  - {name}\n" for name in self.DEV)
+        cases = {
+            "comment without a space": "exclude:\n" + items + "  - docs#note\n",
+            "deeper indent": "exclude:\n" + items + "    - scripts\n",
+            "three-space indent": "exclude:\n" + items + "   - docs\n",
+            "tab indent": "exclude:\n" + items + "\t- docs\n",
+            "YAML 1.1 boolean": "exclude:\n" + items + "  - no\n",
+            "YAML 1.1 null": "exclude:\n" + items + "  - Null\n",
+            "hex integer": "exclude:\n" + items + "  - 0x1F\n",
+            "key with a glued comment": "exclude:#x\n" + items,
+            "item before the key": "  - docs\nexclude:\n" + items,
+            # YAML whitespace is space and tab only; a no-break space is part of the name.
+            "no-break space before a comment": "exclude:\n" + items + "  - docs # x\n",
+            "trailing no-break space": "exclude:\n" + items + "  - docs \n",
+        }
+        for name, text in cases.items():
+            with self.subTest(name):
+                self.assertIn("pages-config", rules(self.config_problems(text)))
+
+    def test_spaced_comments_pass(self):
+        items = "".join(f"  - {name}  # dev\n" for name in self.DEV)
+        self.assertEqual([], self.config_problems("exclude:  # dev paths\n" + items))
+
+    def test_missing_config(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            problems = check.check_published(Path(tmp) / "_config.yml", self.DEV)
+        self.assertEqual(["missing-file"], rules(problems))
+
+    def test_tracked_names_are_top_level(self):
+        names = check.tracked_names(REPO)
+        self.assertIn("index.html", names)
+        self.assertIn("scripts", names)
+        self.assertNotIn("scripts/check.py", names)
+
+    def test_site_config_passes(self):
+        self.assertEqual([], check.check_published(REPO / "_config.yml", check.tracked_names(REPO)))
+
+
 class MainTest(unittest.TestCase):
     def run_main(self, argv, **kwargs):
         out = io.StringIO()
@@ -900,6 +1003,13 @@ class MainTest(unittest.TestCase):
         self.assertEqual(1, code)
         self.assertIn("robots.txt: missing-file:", output)
         self.assertIn("sitemap.xml: missing-file:", output)
+
+    def test_exits_one_outside_a_git_checkout(self):
+        page = (REPO / "index.html").read_text(encoding="utf-8")
+        with tempfile.TemporaryDirectory() as tmp:
+            code, output = self.run_main([], root=self.make_root(tmp, page))
+        self.assertEqual(1, code)
+        self.assertIn("not-a-checkout:", output)
 
     def test_external_flag_runs_only_the_link_fetcher(self):
         calls = []

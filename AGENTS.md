@@ -30,6 +30,7 @@ defensible in an interview. Text first; the design serves the reading.
 | `package.json`, `requirements-dev.txt` | Dev-only toolchain, never served (html-validate, Playwright, axe, coverage) |
 | `luraschi-cv.pdf` | Public CV (no references' contact details) |
 | `CNAME` | Custom domain for GitHub Pages |
+| `_config.yml` | Pages (Jekyll) `exclude` list: every top-level path above except the site's own is never served; `npm run check:static` fails when one is missing |
 | `docs/` | Constitution, architecture, ADRs, design references (`docs/design/DESIGN.md`) |
 
 ## Commands

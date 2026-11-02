@@ -1,0 +1,2 @@
+# Valid YAML the check does not read: a flow list. It must fail closed, never pass silently.
+exclude: [AGENTS.md, CLAUDE.md, README.md, docs, lefthook.yml, node_modules, package-lock.json, package.json, playwright.config.mjs, requirements-dev.txt, scripts, tests]
