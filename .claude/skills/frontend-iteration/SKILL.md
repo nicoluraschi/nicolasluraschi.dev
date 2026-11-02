@@ -11,8 +11,8 @@ reference existed.
 
 ## Authority
 
-- The Claude Design handoff (in `docs/design/`, once it lands) governs the look: layout, spacing,
-  type scale, colour values.
+- The design handoff, `docs/design/DESIGN.md`, governs the look: layout, spacing, type scale,
+  colour values. Don't redesign: if something looks wrong, tell the owner before changing it.
 - The approved copy governs the words. A mockup that changes text is not a copy decision; keep the
   approved wording and flag the difference.
 - `docs/adr/0001-plain-static-html.md` governs the technology: no JavaScript, no framework, one

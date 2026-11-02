@@ -1,0 +1,357 @@
+/* nicolasluraschi.dev: single stylesheet, no JavaScript.
+   Direction H3 ("Ink with petrol blue"). Mobile-first; one breakpoint at 45em. */
+
+/* ---------- Font: Fraunces, self-hosted (SIL OFL 1.1, see /fonts/OFL.txt) ----------
+   Latin subset, variable: optical size 9-144, weight 400-700. About 62 KB. */
+@font-face {
+  font-family: "Fraunces";
+  src: url("/fonts/fraunces-latin.woff2") format("woff2");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ---------- Tokens ---------- */
+:root {
+  color-scheme: light dark;
+
+  --font: Fraunces, Charter, "Iowan Old Style", Georgia, serif;
+
+  /* Colour: light */
+  --bg: #F4F5F5;
+  --surface: #E6EAEB;   /* image frames, diagram cards */
+  --text: #12161A;      /* 16.6:1 on --bg */
+  --muted: #4F5A60;     /* 6.5:1 on --bg, 5.9:1 on --surface */
+  --hair: #D0D6D8;      /* decorative hairlines only, never text */
+  --accent: #0F5C73;    /* 6.9:1 on --bg. Links, one rule, focus ring */
+
+  /* Type scale (rem). The base and display steps grow at the breakpoint. */
+  --text-sm: 0.875rem;
+  --text-base: 1.0625rem;
+  --text-lg: 1.25rem;   /* lead paragraph, org line, job titles */
+  --text-xl: 1.5rem;    /* project titles, essay h2 */
+  --text-2xl: 2rem;     /* pull quote */
+  --text-3xl: 2.75rem;  /* h1 */
+  --leading-tight: 1;
+  --leading-snug: 1.3;
+  --leading-body: 1.6;
+
+  /* Spacing scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2.5rem;
+  --space-7: 3.5rem;
+  --space-8: 5rem;
+
+  /* Layout */
+  --gutter: 1.25rem;
+  --measure: 37rem;     /* about 68 characters at the body size */
+  --wide: 70rem;
+  --col-gap: 4rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0C1215;
+    --surface: #151E22;
+    --text: #E6EDEF;    /* 15.9:1 */
+    --muted: #9FB0B6;   /* 8.4:1 */
+    --hair: #28363B;
+    --accent: #6CC4DC;  /* 9.5:1 */
+  }
+}
+
+@media (min-width: 45em) {
+  :root {
+    --text-base: 1.125rem;
+    --text-lg: 1.5rem;
+    --text-xl: 1.875rem;
+    --text-2xl: 2.5rem;
+    --text-3xl: 4.5rem;
+    --leading-tight: 0.98;
+    --space-6: 3.5rem;
+    --gutter: 2.5rem;
+  }
+}
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  padding-inline: var(--gutter);
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-optical-sizing: auto;
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
+  text-wrap: pretty;
+}
+
+h1, h2, h3 { text-wrap: balance; font-weight: 500; }
+p, ul, ol, dl { margin-block: 0 var(--space-4); }
+
+a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+a:hover { text-decoration-thickness: 2px; }
+a:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+/* External-link marker; the second declaration gives it an empty text alternative. */
+a[href^="https:"]::after {
+  content: "\2197";
+  content: "\2197" / "";
+  display: inline-block;
+  margin-left: 0.15em;
+  font-size: 0.8em;
+  text-decoration: none;
+}
+
+.skip {
+  position: absolute;
+  left: var(--space-2);
+  top: -4rem;
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg);
+  border: 2px solid var(--accent);
+}
+.skip:focus { top: var(--space-2); }
+
+@media (prefers-reduced-motion: no-preference) {
+  a { transition: text-decoration-thickness 0.12s ease; }
+}
+
+.wrap { max-width: var(--wide); margin-inline: auto; }
+
+/* ---------- Header and footer ---------- */
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-4);
+}
+.site-header a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;          /* 44px tap target */
+  font-size: var(--text-sm);
+}
+.site-footer {
+  margin-top: var(--space-6);
+  padding-block: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--hair);
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+.site-footer p { margin: 0; }
+
+/* ---------- Headings ---------- */
+h1 {
+  margin: 0;
+  font-size: var(--text-3xl);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.03em;
+}
+h3 {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-xl);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+}
+
+/* Section label */
+.sec-h {
+  margin: var(--space-6) 0 var(--space-5);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+/* ---------- Home: hero ---------- */
+.hero { padding-block: var(--space-5) var(--space-5); border-bottom: 1px solid var(--hair); }
+.role { margin: var(--space-3) 0 var(--space-4); font-size: 1.125rem; line-height: var(--leading-snug); }
+.lead { margin: 0 0 var(--space-4); font-size: 1.25rem; line-height: 1.5; }
+.meta { margin: 0; color: var(--muted); font-size: 0.9375rem; }
+
+/* ---------- Home: selected work ---------- */
+.work {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--space-6);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--hair);
+}
+.work:first-of-type { padding-top: 0; border-top: 0; }
+.work p { margin-bottom: var(--space-3); }
+.shot { order: -1; margin: 0 0 var(--space-4); }
+.shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--hair);
+  border-radius: 4px;
+  background: var(--surface);
+}
+.stack { color: var(--muted); font-size: 0.9375rem; }
+.tag {
+  display: inline-block;
+  margin-left: var(--space-2);
+  padding: 0 0.45rem;
+  border: 1px solid var(--muted);
+  border-radius: 3px;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  vertical-align: 0.2em;
+}
+.note { margin: 0 0 var(--space-6); color: var(--muted); font-size: 0.9375rem; max-width: var(--measure); }
+
+/* ---------- Home: experience, toolbox ---------- */
+.org { margin-bottom: var(--space-5); font-size: var(--text-lg); line-height: var(--leading-snug); }
+.org span { color: var(--muted); font-size: var(--text-base); }
+.job {
+  margin-bottom: var(--space-5);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--hair);
+}
+.job h3 { font-size: var(--text-lg); margin-bottom: var(--space-2); }
+.dates { display: block; font-size: var(--text-sm); font-weight: 400; letter-spacing: 0; color: var(--muted); }
+.job ul { margin: 0; padding-left: 1.15rem; }
+.job li { margin-bottom: var(--space-2); }
+.job li::marker { color: var(--muted); }
+.job p { margin: 0; }
+
+.toolbox { margin: 0; }
+.toolbox > div { padding-block: var(--space-3); border-top: 1px solid var(--hair); }
+.toolbox > div:first-child { border-top: 0; padding-top: 0; }
+.toolbox dt {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.toolbox dd { margin: 0; }
+
+.prose { max-width: var(--measure); }
+
+/* ---------- Home: contact ---------- */
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-5);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.links a { display: inline-flex; align-items: center; min-height: 2.75rem; }
+.links .cv { font-size: var(--text-lg); font-weight: 700; }
+
+/* ---------- Essay ---------- */
+.essay { max-width: var(--measure); margin-inline: auto; padding-top: var(--space-6); }
+.essay h1 { margin-bottom: var(--space-5); }
+.essay h2 { margin: var(--space-7) 0 var(--space-4); font-size: var(--text-xl); line-height: 1.15; letter-spacing: -0.015em; }
+.essay .lead { font-size: var(--text-lg); }
+.essay ul, .essay ol { padding-left: 1.4rem; }
+.essay li { margin-bottom: var(--space-3); padding-left: 0.25rem; }
+.essay li::marker { color: var(--muted); font-weight: 700; }
+
+.pullquote {
+  margin: var(--space-6) 0;
+  padding-top: var(--space-4);
+  border-top: 2px solid var(--accent);
+  font-size: var(--text-2xl);
+  line-height: 1.15;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+.pullquote span {
+  display: block;
+  margin-bottom: var(--space-2);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+/* Workflow diagram: a visual summary of the numbered list below it (hidden from assistive tech). */
+.flow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  margin: 0 0 var(--space-5);
+  padding: 0;
+  list-style: none;
+}
+.essay .flow { padding: 0; }
+.essay .flow li {
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-3);
+  margin: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--hair);
+  border-radius: 4px;
+  background: var(--surface);
+}
+.flow .n { font-size: var(--text-xl); line-height: 1; color: var(--muted); font-variant-numeric: lining-nums tabular-nums; }
+.flow .t { font-weight: 700; line-height: var(--leading-snug); }
+.chip {
+  display: inline-block;
+  margin-top: var(--space-2);
+  padding: 0 0.5rem;
+  border: 1px solid var(--text);
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  font-weight: 700;
+}
+
+.essay-page .site-header,
+.essay-page .site-footer { max-width: var(--measure); margin-inline: auto; }
+
+/* ---------- Wide screens ---------- */
+@media (min-width: 45em) {
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    column-gap: var(--col-gap);
+    align-items: start;
+    padding-block: var(--space-7) var(--space-6);
+  }
+  .role { font-size: 1.25rem; }
+  .hero-head .meta { margin-top: var(--space-6); }
+  .lead { font-size: var(--text-lg); }
+
+  .work { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); column-gap: var(--col-gap); align-items: start; }
+  .work-text { grid-column: 1; grid-row: 1; }
+  .shot { order: 0; grid-column: 2; grid-row: 1; margin: 0; }
+
+  .job { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); column-gap: var(--col-gap); }
+  .job h3 { margin-bottom: 0; }
+  .toolbox > div { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); column-gap: var(--col-gap); }
+  .org { margin-bottom: var(--space-5); }
+
+  .flow { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-inline: -2rem; }
+  .essay .flow li { grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
+  .pullquote { margin-inline: -2rem; }
+}

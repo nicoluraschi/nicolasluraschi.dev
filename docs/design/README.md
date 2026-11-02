@@ -5,12 +5,12 @@ the `frontend-iteration` skill reads it before writing HTML or CSS.
 ## Files
 | File | What it is | Authority | Do not take |
 |---|---|---|---|
-| _(none yet)_ | The Claude Design output lands here | — | — |
+| `DESIGN.md` | The final design handoff (direction "H3"): editing rules, page structure, tokens, open items | The look: layout, structure, type scale, spacing, colour values, the self-hosted Fraunces font | Its "Still to add" and "Not done yet" lists are status, not scope: each item is the owner's pick |
 
 ## Fixed before any reference
 These were decided with the owner and no design output overrides them:
 - Plain semantic HTML and one `style.css`; no JavaScript, no framework, no web-font service
-  unless the owner approves it.
+  unless the owner approves it. The owner approved one self-hosted font, Fraunces (`fonts/`).
 - Text first. One font stack, one accent colour.
 - Light and dark via `prefers-color-scheme`; both must meet WCAG AA contrast.
 - Mobile-first; readable at 320px wide with no horizontal scroll.

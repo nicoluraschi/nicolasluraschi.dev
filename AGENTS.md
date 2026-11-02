@@ -20,11 +20,13 @@ defensible in an interview. Text first; the design serves the reading.
 | `index.html` | Home (`/`) |
 | `how-i-work/index.html` | The essay (`/how-i-work`) |
 | `style.css` | The only stylesheet |
-| `cv.pdf` | Public CV (no references' contact details) |
+| `fonts/` | Self-hosted Fraunces (latin subset, variable) and its SIL OFL licence |
+| `img/` | Project screenshots, 1280x800 |
+| `luraschi-cv.pdf` | Public CV (no references' contact details) |
 | `CNAME` | Custom domain for GitHub Pages |
-| `docs/` | Constitution, architecture, ADRs, design references |
+| `docs/` | Constitution, architecture, ADRs, design references (`docs/design/DESIGN.md`) |
 
-The site files land in the first site PR; this table describes the target layout.
+Still to add: `luraschi-cv.pdf`, the screenshots, `CNAME`.
 
 ## Commands
 | Task | Command |
@@ -38,6 +40,16 @@ The local hooks (`lefthook.yml`) run gitleaks on every commit; CI runs the same 
 ## Conventions
 - Semantic HTML, mobile-first CSS, light and dark through `prefers-color-scheme`. One font stack,
   one accent colour.
+- The design is final (`docs/design/DESIGN.md`). Don't redesign; flag anything that looks wrong
+  before changing it. Key rules:
+  - No JavaScript, extra fonts, gradients, shadows or emoji.
+  - Colours only from the CSS custom properties; none hard-coded, no inline styles.
+  - Accent only on links, the pull-quote rule and the focus ring.
+  - WCAG AA in both schemes (text 4.5:1, large text and UI 3:1); visible keyboard focus; header
+    and contact links keep 44px tap targets.
+  - A copy change that affects layout (a longer title, tag or chip, more diagram steps) is named,
+    with the smallest CSS change proposed. The diagram and the numbered list under it change
+    together.
 - Accessibility is a requirement, not a polish step: headings in order, visible focus, sufficient
   contrast in both schemes, `prefers-reduced-motion` honoured.
 - Code review scope: gitleaks and the site checks run in hooks and CI. Don't re-report what they
