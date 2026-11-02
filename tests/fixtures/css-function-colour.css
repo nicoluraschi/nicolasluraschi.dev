@@ -1,0 +1,2 @@
+/* Fixture: a functional colour inside a border shorthand, next to a token. */
+.card { border: 1px solid rgb(0 0 0 / 0.2); color: var(--text); }

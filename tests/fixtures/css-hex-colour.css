@@ -1,0 +1,5 @@
+/* Fixture: a hex colour outside the token blocks. */
+:root { --bg: #FFFFFF; }
+.card {
+  color: #333;
+}

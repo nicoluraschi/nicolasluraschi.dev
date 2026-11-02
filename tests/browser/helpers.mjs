@@ -12,7 +12,7 @@ export const PAGES = [
 export const SCHEMES = ['light', 'dark'];
 
 // The literal --bg per scheme, so a failed colour-scheme emulation fails the test.
-export const BACKGROUNDS = { light: 'rgb(244, 245, 245)', dark: 'rgb(12, 18, 21)' };
+export const BACKGROUNDS = { light: 'rgb(246, 241, 235)', dark: 'rgb(21, 17, 14)' };
 
 export const fixtureUrl = (name) => `/tests/fixtures/${name}`;
 
@@ -47,6 +47,88 @@ export function colourAlpha(value) {
   return 1;
 }
 
+// WCAG contrast from computed colours. rgb()/rgba() is what Chromium returns for hex tokens;
+// anything else is reported, never guessed.
+function parseRgb(value) {
+  const m = value.match(/^rgba?\(\s*([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\s*\)$/);
+  return m ? { rgb: [+m[1], +m[2], +m[3]], alpha: m[4] === undefined ? 1 : +m[4] } : null;
+}
+
+function luminance([r, g, b]) {
+  const lin = (c) => { const s = c / 255; return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4; };
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+}
+
+export function contrastRatio(a, b) {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+// The first opaque background in the chain (nearest first), skipping transparent ones. Every
+// token is opaque, so a translucent or unparsable layer returns null: reported, never guessed.
+function effectiveBackground(chain) {
+  for (const value of chain) {
+    const colour = parseRgb(value);
+    if (!colour || (colour.alpha > 0 && colour.alpha < 1)) return null;
+    if (colour.alpha === 1) return colour.rgb;
+  }
+  return null;
+}
+
+// Every visible element with its own text, and every list marker, against the background behind
+// it: 4.5:1, or 3:1 for large text (24px, or 18.66px at weight 700 or more).
+export async function contrastFailures(page) {
+  await page.evaluate(() => document.fonts.ready);
+  const samples = await page.evaluate(() => {
+    // The background-color of an element and each ancestor, nearest first.
+    const chain = (el) => {
+      const out = [];
+      for (let n = el; n; n = n.parentElement) out.push(getComputedStyle(n).backgroundColor);
+      return out;
+    };
+    // Opacity multiplies down the tree, so a faded ancestor fades this element's text too.
+    const opacity = (el) => {
+      let value = 1;
+      for (let n = el; n; n = n.parentElement) value *= parseFloat(getComputedStyle(n).opacity);
+      return value;
+    };
+    const label = (el) => el.tagName.toLowerCase() + [...el.classList].map((c) => `.${c}`).join('');
+    const out = [];
+    for (const el of document.body.querySelectorAll('*')) {
+      if (el.getClientRects().length === 0) continue;
+      const style = getComputedStyle(el);
+      const alpha = opacity(el);
+      if (style.visibility === 'hidden' || alpha === 0) continue;
+      const own = [...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join('').trim();
+      const backgrounds = chain(el);
+      const base = {
+        label: label(el), size: parseFloat(style.fontSize), weight: parseInt(style.fontWeight, 10), backgrounds, alpha,
+      };
+      if (own) out.push({ ...base, text: own.slice(0, 30), color: style.color });
+      if (style.display === 'list-item' && style.listStyleType !== 'none') {
+        out.push({ ...base, text: '::marker', color: getComputedStyle(el, '::marker').color });
+      }
+    }
+    return out;
+  });
+  const failures = [];
+  for (const sample of samples) {
+    const where = `${sample.label} "${sample.text}"`;
+    const fg = parseRgb(sample.color);
+    const bg = effectiveBackground(sample.backgrounds);
+    if (!fg || fg.alpha !== 1 || !bg || sample.alpha !== 1) {
+      const faded = sample.alpha === 1 ? '' : ` at opacity ${Number(sample.alpha.toFixed(2))}`;
+      failures.push(`${where}: cannot rate ${sample.color} on ${sample.backgrounds[0]}${faded}`);
+      continue;
+    }
+    const large = sample.size >= 24 || (sample.size >= 18.66 && sample.weight >= 700);
+    const needed = large ? 3 : 4.5;
+    const ratio = contrastRatio(fg.rgb, bg);
+    if (ratio < needed) failures.push(`${where}: ${ratio.toFixed(2)}:1, needs ${needed}:1`);
+  }
+  return failures;
+}
+
 const FOCUSABLE = 'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
 export async function focusFailures(page) {
@@ -58,7 +140,11 @@ export async function focusFailures(page) {
       const el = document.activeElement;
       const style = getComputedStyle(el);
       const box = el.getBoundingClientRect();
+      // The ring is drawn outside the element (outline-offset), over its parent's background.
+      const ringBackgrounds = [];
+      for (let n = el.parentElement; n; n = n.parentElement) ringBackgrounds.push(getComputedStyle(n).backgroundColor);
       return {
+        ringBackgrounds,
         name: el.tagName.toLowerCase() + [...el.classList].map((c) => `.${c}`).join(''),
         text: (el.textContent || '').trim().slice(0, 30),
         isSkip: el.classList.contains('skip'),
@@ -77,6 +163,11 @@ export async function focusFailures(page) {
     const alpha = colourAlpha(focused.outlineColor);
     if (alpha !== 1) {
       failures.push(`${label}: outline colour ${focused.outlineColor} is not opaque (alpha ${alpha})`);
+    } else {
+      const ring = parseRgb(focused.outlineColor);
+      const behind = effectiveBackground(focused.ringBackgrounds);
+      const ratio = ring && behind ? contrastRatio(ring.rgb, behind) : 0;
+      if (ratio < 3) failures.push(`${label}: outline ${ratio.toFixed(2)}:1 against the background, needs 3:1`);
     }
     if (step === 1 && !focused.isSkip) failures.push(`${label}: the skip link is not first`);
     if (step === 1 && !focused.inViewport) failures.push(`${label}: not inside the viewport while focused`);

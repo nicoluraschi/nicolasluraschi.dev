@@ -1,0 +1,2 @@
+/* Fixture: a gradient built only from tokens is still a gradient. */
+.card { background-image: linear-gradient(var(--bg), var(--surface)); }

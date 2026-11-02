@@ -49,7 +49,8 @@ history, then `npm run check` (adds the self-tests and browser checks) and `npm 
   before changing it. Key rules:
   - No JavaScript, extra fonts, gradients, shadows or emoji.
   - Colours only from the CSS custom properties; none hard-coded, no inline styles.
-  - Accent only on links, the pull-quote rule and the focus ring.
+  - Accent only on links, the pull-quote rule, the focus ring, section and stack/toolbox labels,
+    tags and diagram numbers (the list in `DESIGN.md`).
   - WCAG AA in both schemes (text 4.5:1, large text and UI 3:1); visible keyboard focus; header
     and contact links keep 44px tap targets.
   - A copy change that affects layout (a longer title, tag or chip, more diagram steps) is named,

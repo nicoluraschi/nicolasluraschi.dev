@@ -359,9 +359,10 @@ class ContrastTest(unittest.TestCase):
         self.assertEqual(12, len([row for row in rows if row[4] == 4.5]))
         self.assertEqual(12, len([row for row in rows if row[4] == 3.0]))
 
-    def test_lowest_ratio_is_light_muted_on_surface(self):
+    def test_lowest_ratio_is_light_accent_on_surface(self):
+        # The terracotta accent on the tinted surface: tags and diagram numbers sit there.
         scheme, fg, bg, ratio, _ = min(check.contrast_report(self.css("style.css")), key=lambda r: r[3])
-        self.assertEqual(("light", "--muted", "--surface", 5.85), (scheme, fg, bg, round(ratio, 2)))
+        self.assertEqual(("light", "--accent", "--surface", 4.99), (scheme, fg, bg, round(ratio, 2)))
 
     def test_site_stylesheet_passes(self):
         self.assertEqual([], check.check_contrast(self.css("style.css"), "style.css"))
@@ -397,6 +398,63 @@ class ContrastTest(unittest.TestCase):
     def test_missing_dark_block_fails(self):
         problems = check.check_contrast(self.css("contrast-missing-dark.css"), "contrast-missing-dark.css")
         self.assertEqual(["missing-dark-block"], rules(problems))
+
+
+class CssColourTest(unittest.TestCase):
+    """PR 3: colours come only from the tokens; no gradients or shadows."""
+
+    def problems(self, name):
+        path = FIXTURES / name
+        return check.check_css_colours(path.read_text(encoding="utf-8"), name)
+
+    def test_hex_outside_the_token_blocks_is_named_with_its_line(self):
+        problems = self.problems("css-hex-colour.css")
+        self.assertEqual(["hard-coded-colour"], rules(problems))
+        self.assertIn("line 4", problems[0].message)
+        self.assertIn("color: #333", problems[0].message)
+
+    def test_functional_colour_in_a_shorthand(self):
+        problems = self.problems("css-function-colour.css")
+        self.assertEqual(["hard-coded-colour"], rules(problems))
+        self.assertIn("rgb(0 0 0 / 0.2)", problems[0].message)
+
+    def test_named_colour_inside_a_media_block(self):
+        problems = self.problems("css-named-colour.css")
+        self.assertEqual(["hard-coded-colour"], rules(problems))
+        self.assertIn("line 3", problems[0].message)
+
+    def test_gradient_from_tokens_is_still_a_gradient(self):
+        self.assertEqual(["gradient"], rules(self.problems("css-gradient.css")))
+
+    def test_shadow_is_named_and_none_passes(self):
+        problems = self.problems("css-shadow.css")
+        self.assertEqual(["shadow"], rules(problems))
+        self.assertIn("box-shadow", problems[0].message)
+
+    def test_site_stylesheet_passes(self):
+        css = (REPO / "style.css").read_text(encoding="utf-8")
+        self.assertEqual([], check.check_css_colours(css, "style.css"))
+
+    def test_non_colour_keywords_in_colour_named_properties_pass(self):
+        css = (".a { border-collapse: collapse; background-size: cover; }\n"
+               ".b { background: no-repeat center var(--bg); outline-style: none; }")
+        self.assertEqual([], check.check_css_colours(css, "inline.css"))
+
+    def test_literal_in_a_var_fallback_is_named(self):
+        problems = check.check_css_colours(".a { color: var(--accent, #f00); }", "inline.css")
+        self.assertEqual(["hard-coded-colour"], rules(problems))
+
+    def test_background_image_and_important_pass(self):
+        css = ".a { background: var(--bg) url(/img/x.png) no-repeat; color: var(--text) !important; }"
+        self.assertEqual([], check.check_css_colours(css, "inline.css"))
+
+    def test_named_colour_in_logical_border_and_text_stroke_is_named(self):
+        css = ".a { border-block-start: 1px solid red; }\n.b { -webkit-text-stroke: 1px red; }"
+        self.assertEqual(["hard-coded-colour", "hard-coded-colour"],
+                         rules(check.check_css_colours(css, "inline.css")))
+
+    def test_nested_var_fallback_passes(self):
+        self.assertEqual([], check.check_css_colours(".a { color: var(--a, var(--b)); }", "inline.css"))
 
 
 BIG = 64 * 1024 * 1024  # a body no unread-closing client can have received in full
@@ -608,7 +666,17 @@ class MainTest(unittest.TestCase):
     def test_exits_zero_on_the_site_and_prints_the_contrast_report(self):
         code, output = self.run_main([])
         self.assertEqual(0, code, output)
-        self.assertIn("light --muted on --surface 5.85:1", output)
+        self.assertIn("light --muted on --surface 6.00:1", output)
+
+    def test_exits_one_on_a_stylesheet_with_a_hard_coded_colour(self):
+        page = (REPO / "index.html").read_text(encoding="utf-8")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self.make_root(tmp, page)
+            with (root / "style.css").open("a", encoding="utf-8") as sheet:
+                sheet.write("\n.x { color: #000; }\n")
+            code, output = self.run_main([], root=root)
+        self.assertEqual(1, code)
+        self.assertIn("style.css: hard-coded-colour:", output)
 
     def test_exits_one_and_names_file_and_rule_on_a_bad_page(self):
         bad = (FIXTURES / "forbidden-script.html").read_text(encoding="utf-8")

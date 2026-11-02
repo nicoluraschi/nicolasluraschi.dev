@@ -31,6 +31,15 @@ test('a nearly transparent focus outline is named', async ({ page }) => {
   expect(failures[0]).toMatch(/a\.faint.*not opaque/);
 });
 
+test('an opaque focus outline below 3:1 against the page is named', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto(fixtureUrl('focus-low-contrast.html'));
+  await assertScheme(page, 'light');
+  const failures = await focusFailures(page);
+  expect(failures).toHaveLength(1);
+  expect(failures[0]).toMatch(/a\.pale.*outline 1\.\d+:1 against the background, needs 3:1/);
+});
+
 test('links that remove the outline on focus are named', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto(fixtureUrl('focus-no-outline.html'));
