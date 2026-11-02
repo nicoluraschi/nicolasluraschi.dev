@@ -94,7 +94,7 @@ class LinksTest(unittest.TestCase):
 
     def test_valid_links_pass(self):
         # Directories resolve to index.html, fragments exist, protocol-relative and absolute URLs
-        # are external, and the three excluded paths are skipped.
+        # are external, and the CV and screenshots exist.
         self.assertEqual([], link_problems("link-ok.html"))
 
     def test_site_pages_pass(self):
@@ -110,10 +110,226 @@ class LinksTest(unittest.TestCase):
     def test_site_stylesheet_passes(self):
         self.assertEqual([], check.check_css_assets(REPO / "style.css", REPO, "/style.css"))
 
-    def test_excluded_paths_are_exactly_the_three_placeholders(self):
+    def test_former_placeholder_paths_are_checked_like_any_other(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            page = Path(tmp) / "page.html"
+            page.write_text(
+                '<!doctype html><html lang="en"><body><a href="/luraschi-cv.pdf">cv</a>'
+                '<img src="/img/runhub.png" width="1" height="1" alt="x"></body></html>')
+            problems = check.check_links(page, Path(tmp), "/page.html")
+        self.assertEqual(["missing-target", "missing-target"], rules(problems))
+
+
+class SrcsetUrlsTest(unittest.TestCase):
+    def test_density_and_width_descriptors(self):
+        self.assertEqual(["a.png", "b.png"], check._srcset_urls("a.png 1x, b.png 640w"))
+
+    def test_no_descriptor(self):
+        self.assertEqual(["a.png", "b.png"], check._srcset_urls("a.png, b.png"))
+
+    def test_comma_inside_a_url_is_part_of_it(self):
+        self.assertEqual(["/img/a,b.png"], check._srcset_urls("/img/a,b.png 2x"))
+
+    def test_extra_whitespace_and_commas(self):
+        self.assertEqual(["a.png", "b.png"], check._srcset_urls(" ,, a.png  1x ,,  b.png\n2x , "))
+
+    def test_comma_inside_parentheses_in_a_descriptor_does_not_end_the_candidate(self):
+        self.assertEqual(["a.png", "b.png"], check._srcset_urls("a.png (x,y) 1x, b.png"))
+
+    def test_parentheses_do_not_nest(self):
+        # The first ")" leaves the parentheses state, so the next comma ends the candidate.
+        self.assertEqual(["a.png", "y)", "b.png"], check._srcset_urls("a.png ((x),y) 1x, b.png"))
+
+    def test_empty_value_has_no_candidates(self):
+        self.assertEqual([], check._srcset_urls(""))
+        self.assertEqual([], check._srcset_urls(" , "))
+
+    def test_only_ascii_whitespace_separates(self):
+        # Browsers split on ASCII whitespace only; a no-break space stays inside the URL.
+        self.assertEqual(["/a.png b.png"], check._srcset_urls("/a.png b.png 2x"))
+
+
+class SrcsetLinksTest(unittest.TestCase):
+    def test_missing_second_candidate_is_named(self):
+        problems = link_problems("srcset-missing-candidate.html")
+        self.assertEqual(["missing-target"], rules(problems))
+        self.assertIn("missing.png", problems[0].message)
+
+    def test_source_element_srcset_is_checked(self):
+        self.assertEqual(["missing-target"], rules(link_problems("srcset-source.html")))
+
+    def test_url_with_a_comma_is_read_as_one_url(self):
+        problems = link_problems("srcset-comma-url.html")
+        self.assertEqual(["missing-target"], rules(problems))
+        self.assertIn("/img/a,b.png", problems[0].message)
+
+    def test_candidate_outside_the_root(self):
+        self.assertEqual(["outside-root"], rules(link_problems("srcset-outside-root.html")))
+
+    def test_link_imagesrcset_is_checked(self):
+        self.assertEqual(["missing-target"], rules(link_problems("srcset-imagesrcset.html")))
+
+    def test_empty_srcset_passes(self):
+        self.assertEqual([], link_problems("srcset-empty.html"))
+
+    def test_external_candidates_are_not_resolved_but_join_the_external_set(self):
+        self.assertEqual([], link_problems("srcset-external.html"))
         self.assertEqual(
-            frozenset({"/luraschi-cv.pdf", "/img/runhub.png", "/img/marginalia.png"}),
-            check.EXCLUDED)
+            ["http://cdn.test/c.png", "https://cdn.test/a.png", "https://cdn.test/b.png"],
+            sorted(check.external_urls(FIXTURES / "srcset-external.html")))
+
+
+PLACEHOLDER_FIXTURES = (
+    "placeholder-marker-text.html", "placeholder-marker-comment.html",
+    "placeholder-marker-attribute.html", "placeholder-word.html", "placeholder-lorem.html",
+    "placeholder-example-host.html", "placeholder-hash-href.html", "placeholder-empty-href.html")
+
+
+class PlaceholderTest(unittest.TestCase):
+    def page_problems(self, body):
+        with tempfile.TemporaryDirectory() as tmp:
+            page = Path(tmp) / "page.html"
+            page.write_text(f'<!doctype html>\n<html lang="en"><body>\n{body}\n</body></html>\n')
+            return check.check_placeholders(page)
+
+    def test_each_fixture_fails_with_the_placeholder_rule_only(self):
+        for name in PLACEHOLDER_FIXTURES:
+            with self.subTest(name):
+                path = FIXTURES / name
+                self.assertEqual(["placeholder"], rules(check.check_placeholders(path)))
+                self.assertEqual([], check.check_forbidden(path))
+                self.assertEqual([], check.check_links(path, REPO, url_of(path)))
+
+    def test_marker_is_named_with_its_line_and_where_it_sits(self):
+        for name, where in (("text", "text"), ("comment", "comment"), ("attribute", "title")):
+            with self.subTest(name):
+                problems = check.check_placeholders(FIXTURES / f"placeholder-marker-{name}.html")
+                self.assertIn("YOUR-HANDLE", problems[0].message)
+                self.assertIn("line 9", problems[0].message)
+                self.assertTrue(problems[0].message.endswith(f"in {where}"), problems[0].message)
+
+    def test_near_misses_pass(self):
+        self.assertEqual([], check.check_placeholders(FIXTURES / "placeholder-clean.html"))
+
+    def test_site_pages_pass(self):
+        for page in ("index.html", "how-i-work/index.html"):
+            self.assertEqual([], check.check_placeholders(REPO / page), page)
+
+    def test_marker_words_by_variant(self):
+        for word in ("TODO", "TBD", "FIXME", "XXX"):
+            with self.subTest(word):
+                problems = self.page_problems(f"<p>{word}</p>")
+                self.assertEqual(["placeholder"], rules(problems))
+                self.assertIn(f"line 3: {word} in text", problems[0].message)
+
+    def test_marker_words_are_case_sensitive_and_whole_words(self):
+        self.assertEqual([], self.page_problems("<p>todo Tbd fixmes XXXL TODOS</p>"))
+
+    def test_lorem_ipsum_in_any_case_across_whitespace(self):
+        for text in ("lorem ipsum", "LOREM   IPSUM", "Lorem\nIpsum"):
+            with self.subTest(text):
+                self.assertEqual(["placeholder"], rules(self.page_problems(f"<p>{text}</p>")))
+
+    def test_marker_token_is_the_whole_token(self):
+        problems = self.page_problems("<p>YOUR-GITHUB_HANDLE-2 here</p>")
+        self.assertIn("YOUR-GITHUB_HANDLE-2", problems[0].message)
+
+    def test_dummy_hosts_by_variant(self):
+        for url in ("https://example.com/", "http://example.org", "https://example.net/x",
+                    "https://www.example.com/", "//example.net/x", "https://EXAMPLE.com/",
+                    "https://example.com./x", "https:\\\\example.com/x"):
+            with self.subTest(url):
+                self.assertEqual(["placeholder"], rules(self.page_problems(f'<a href="{url}">x</a>')))
+
+    def test_dummy_host_in_each_url_attribute(self):
+        for tag in ('<a href="{}">x</a>', '<img src="{}" alt="x">', '<form action="{}"></form>',
+                    '<img srcset="/a.png 1x, {} 2x" alt="x">', '<link rel="preload" imagesrcset="{} 2x">'):
+            with self.subTest(tag):
+                self.assertEqual(
+                    ["placeholder"], rules(self.page_problems(tag.format("https://example.org/a.png"))))
+
+    def test_non_dummy_hosts_pass(self):
+        for url in ("https://example.company.com/", "https://notexample.com/", "mailto:a@example.com"):
+            with self.subTest(url):
+                self.assertEqual([], self.page_problems(f'<a href="{url}">x</a>'))
+
+    def test_empty_and_hash_hrefs(self):
+        for href in ("#", "", " ", "\t\n"):
+            with self.subTest(repr(href)):
+                self.assertEqual(["placeholder"], rules(self.page_problems(f'<a href="{href}">x</a>')))
+        self.assertEqual(["placeholder"], rules(self.page_problems("<a href>x</a>")))
+
+    def test_marker_in_any_attribute_value(self):
+        self.assertEqual(["placeholder"], rules(self.page_problems('<a href="/" data-x="YOUR-NAME">x</a>')))
+
+    def test_dummy_host_in_formaction_and_xlink_href(self):
+        for tag in ('<button formaction="https://example.org/x">x</button>',
+                    '<svg><use xlink:href="https://example.org/x"></use></svg>'):
+            with self.subTest(tag):
+                self.assertEqual(["placeholder"], rules(self.page_problems(tag)))
+
+    def test_malformed_url_is_not_a_dummy_and_does_not_raise(self):
+        self.assertEqual([], self.page_problems('<a href="http://[x/">x</a><img srcset="http://[x/ 1x" alt="x">'))
+
+
+class MalformedUrlTest(unittest.TestCase):
+    def page(self, tmp, body):
+        page = Path(tmp) / "page.html"
+        page.write_text(f'<!doctype html>\n<html lang="en"><body>\n{body}\n</body></html>\n')
+        return page
+
+    def test_malformed_href_and_srcset_candidate_each_give_one_problem(self):
+        for body in ('<a href="http://[x/">x</a>', '<img srcset="http://[x/ 2x" alt="x">'):
+            with self.subTest(body), tempfile.TemporaryDirectory() as tmp:
+                problems = check.check_links(self.page(tmp, body), Path(tmp), "/page.html")
+                self.assertEqual(["malformed-url"], rules(problems))
+                self.assertIn("http://[x/", problems[0].message)
+                self.assertIn("line 3", problems[0].message)
+
+    def test_fixture_fails_with_malformed_url_only(self):
+        path = FIXTURES / "malformed-url.html"
+        self.assertEqual(["malformed-url"], rules(check.check_links(path, REPO, url_of(path))))
+        self.assertEqual([], check.check_forbidden(path))
+        self.assertEqual([], check.check_placeholders(path))
+
+    def test_malformed_form_action_is_reported(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            page = self.page(tmp, '<form action="http://[x/"></form>')
+            self.assertEqual(["malformed-url"], rules(check.check_links(page, Path(tmp), "/page.html")))
+
+    def test_internal_form_action_is_resolved(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            page = self.page(tmp, '<form action="/nope"></form>')
+            self.assertEqual(["missing-target"], rules(check.check_links(page, Path(tmp), "/page.html")))
+
+    def test_malformed_css_url_is_reported(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            css = Path(tmp) / "s.css"
+            css.write_text("a { background: url(http://[x/) }\n")
+            problems = check.check_css_assets(css, Path(tmp), "/s.css")
+        self.assertEqual(["malformed-url"], rules(problems))
+        self.assertIn("line 1", problems[0].message)
+
+    def test_external_urls_skips_a_malformed_url(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            page = self.page(tmp, '<a href="http://[x/">x</a><a href="https://cdn.test/">y</a>')
+            self.assertEqual(["https://cdn.test/"], check.external_urls(page))
+
+
+class CopyEditsTest(unittest.TestCase):
+    """The owner-decided values from the spec's AC4, asserted exactly."""
+
+    def setUp(self):
+        self.tags = check.parse(REPO / "index.html").tags
+
+    def test_linkedin_link_is_the_owners_profile(self):
+        hrefs = [a["href"] for tag, a, _ in self.tags if tag == "a" and "linkedin.com" in a.get("href", "")]
+        self.assertEqual(["https://www.linkedin.com/in/nicolas-luraschi-pereira"], hrefs)
+
+    def test_marginalia_alt_describes_the_library_view(self):
+        alts = [a["alt"] for tag, a, _ in self.tags if tag == "img" and a.get("src") == "/img/marginalia.png"]
+        self.assertEqual(
+            ["Marginalia: a reading library with the book in progress and shelves by status"], alts)
 
 
 class ContrastTest(unittest.TestCase):
@@ -387,6 +603,13 @@ class MainTest(unittest.TestCase):
             code, output = self.run_main([], root=root)
         self.assertEqual(1, code)
         self.assertIn("index.html: forbidden-script:", output)
+
+    def test_exits_one_and_names_the_placeholder_on_a_page_with_a_marker(self):
+        page = (REPO / "index.html").read_text(encoding="utf-8").replace("</main>", "<p>YOUR-HANDLE</p></main>", 1)
+        with tempfile.TemporaryDirectory() as tmp:
+            code, output = self.run_main([], root=self.make_root(tmp, page))
+        self.assertEqual(1, code)
+        self.assertIn("index.html: placeholder:", output)
 
     def test_external_flag_runs_only_the_link_fetcher(self):
         calls = []
