@@ -32,6 +32,11 @@ export async function horizontalOverflow(page) {
 // fallback, then released. Only shifts after the release count, so the score is the swap's alone.
 export const FONT_URL = '**/fonts/fraunces-latin.woff2';
 
+// DOMContentLoaded does not wait for stylesheets, and the @font-face rules exist only once they
+// are parsed; the load event cannot be awaited while the font is held.
+export const stylesheetsParsed = (page) =>
+  page.waitForFunction(() => [...document.querySelectorAll('link[rel="stylesheet"]')].every((link) => link.sheet));
+
 export async function fontSwapShiftFailures(page, url, budget) {
   let release;
   const held = new Promise((resolve) => { release = resolve; });
@@ -50,6 +55,7 @@ export async function fontSwapShiftFailures(page, url, budget) {
     }).observe({ type: 'layout-shift', buffered: true });
   });
   await page.goto(url, { waitUntil: 'domcontentloaded' });
+  await stylesheetsParsed(page);
   // Past swap's block period (at most 100 ms), so the fallback is on screen as a reader sees it,
   // and two frames, so shifts from the first layout are reported before counting starts.
   const frames = () => page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));

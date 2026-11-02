@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { PAGES, FONT_URL, fixtureUrl, fontSwapShiftFailures } from './helpers.mjs';
+import { PAGES, FONT_URL, fixtureUrl, fontSwapShiftFailures, stylesheetsParsed } from './helpers.mjs';
 
 // Fraunces swaps in over a metric-adjusted fallback, so the page barely moves when it arrives.
 // The budget is per page and width (layout-shift score; 0.1 is Core Web Vitals' "good").
@@ -20,6 +20,7 @@ test('the metric-adjusted fallback faces load on Linux', async ({ page }) => {
   test.skip(process.platform !== 'linux', 'Liberation Serif is the Linux fallback');
   await page.route(FONT_URL, () => {});
   await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await stylesheetsParsed(page);
   const faces = await page.evaluate(async () => {
     const fallbacks = [...document.fonts].filter((f) => f.family !== 'Fraunces');
     await Promise.all(fallbacks.map((f) => f.load().catch(() => {})));
