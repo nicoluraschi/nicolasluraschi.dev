@@ -20,7 +20,7 @@ Hand-written HTML + one CSS file. No JavaScript, no build step. Direction "H3" (
 header > main (hero, About, Selected work, Experience, Toolbox, Now, Contact) > footer.
 - Hero: `.hero-head` (name, role, location) + `.hero-body` (lead + paragraph). Two columns from 45em.
 - About: `.prose` paragraphs, the last one the languages line.
-- Work item: `<article class="work">` with `.work-text` and an optional `<figure class="shot">`. An item with no figure is valid (Winnow, the "How I work with AI" entry). A project's stack is `dl.stack`, one `div` per layer (`dt` label + `dd` items): Backend, Frontend, Data & hosting, Quality, AI.
+- Work item: `<article class="work">` with `.work-text` and an optional `<figure class="shot">`, whose image links to its own full-size PNG (readable on phones, where it renders small). An item with no figure is valid (Winnow, the "How I work with AI" entry). A project's stack is `dl.stack`, one `div` per layer (`dt` label + `dd` items): Backend, Frontend, Data & hosting, Quality, AI.
 - Job: `<article class="job">`; `.job-head` holds the `h3` (title only) and `p.dates`; content is a `ul` or a `p`.
 - Toolbox: `dl.toolbox`, one `div` per row (`dt` + `dd`). Add or remove rows freely.
 - Contact: the CV link is `.cv` (largest, bold). It is a text link, not a button.

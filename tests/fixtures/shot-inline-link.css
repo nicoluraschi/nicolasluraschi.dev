@@ -1,0 +1,2 @@
+/* The defect: the screenshot link stays inline, so its focus ring paints on empty line fragments. */
+.shot a { display: inline; }

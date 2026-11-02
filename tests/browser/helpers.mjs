@@ -52,6 +52,31 @@ export async function markerWrapFailures(page) {
   }));
 }
 
+// Each project screenshot links to its own full-size PNG, as one box: the image's. An inline link
+// around the block image is split into empty line fragments, and Chromium paints its focus ring on
+// those, so the computed outline looks right while nothing shows. A page with no screenshot fails:
+// the check can't pass by finding nothing.
+export async function shotLinkFailures(page) {
+  const shots = await page.locator('.shot img').evaluateAll((imgs) => imgs.map((img) => {
+    const link = img.closest('a');
+    const box = (r) => [r.left, r.top, r.width, r.height];
+    return {
+      src: img.src,
+      href: link?.href ?? null,
+      img: box(img.getBoundingClientRect()),
+      rects: link ? [...link.getClientRects()].map(box) : [],
+    };
+  }));
+  if (shots.length === 0) return ['no .shot img on the page'];
+  return shots.flatMap(({ src, href, img, rects }) => {
+    const name = src.split('/').pop();
+    if (href === null) return [`${name}: not inside a link`];
+    if (href !== src) return [`${name}: links to ${href}, not to its own PNG`];
+    const one = rects.length === 1 && rects[0].every((v, i) => Math.abs(v - img[i]) <= 1);
+    return one ? [] : [`${name}: link is ${rects.length} boxes, not the image's one`];
+  });
+}
+
 // Alpha of a computed CSS colour: "transparent" is 0; "... / a)" (rgb, color(), oklch(), lab())
 // and the legacy 4-argument rgba()/hsla() carry it; a colour with no alpha is opaque (1).
 export function colourAlpha(value) {
