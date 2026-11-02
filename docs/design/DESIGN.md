@@ -48,3 +48,4 @@ Favicon: "NL" monogram in the accent (`favicon.svg`, swaps to the dark accent; `
 ## Not done yet
 - RunHub case study page.
 - Font fallback tuning for Android (Noto Serif): not measured.
+- Owner review of all the text on both pages (`/` and `/how-i-work/`).
