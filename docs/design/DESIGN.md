@@ -5,7 +5,6 @@ Hand-written HTML + one CSS file. No JavaScript, no build step. Direction "H3" (
 ## Files
 - `index.html`, `how-i-work/index.html`, `style.css`
 - `fonts/fraunces-latin.woff2` (+ `OFL.txt`). Self-hosted, latin subset, variable (optical size 9-144, weight 400-700), ~62 KB.
-- Still to add: `luraschi-cv.pdf`, `img/runhub.png`, `img/marginalia.png` (1280x800), LinkedIn URL (`YOUR-HANDLE`).
 
 ## Rules when editing copy
 - Do not add JavaScript, extra fonts, extra accent colours, gradients, shadows or emoji.
