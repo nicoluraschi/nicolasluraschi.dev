@@ -1,0 +1,4 @@
+/* Fixture: a named colour in a background shorthand. */
+@media (min-width: 45em) {
+  .card { background: white; }
+}

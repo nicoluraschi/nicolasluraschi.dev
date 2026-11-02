@@ -226,7 +226,7 @@ def check_placeholders(path):
 
 
 TEXT_TOKENS = ("--text", "--muted", "--accent")
-# Focus ring (--accent), tag border (--muted), chip border (--text). --hair is decorative.
+# Focus ring and tag border (--accent), list markers (--muted), chip border (--text). --hair is decorative.
 UI_TOKENS = ("--accent", "--muted", "--text")
 BACKGROUNDS = ("--bg", "--surface")
 TEXT_MIN = 4.5
@@ -314,6 +314,67 @@ def check_contrast(css, name):
             rule = "contrast-text" if threshold == TEXT_MIN else "contrast-ui"
             problems.append(Problem(
                 str(name), rule, f"{scheme}: {fg} on {bg} is {ratio:.2f}:1, needs {threshold}:1"))
+    return problems
+
+
+COLOUR_LITERAL = re.compile(
+    r"#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|color-mix)\(", re.IGNORECASE)
+# Non-colour words allowed in colour-valued properties; any other bare word is a named colour.
+COLOUR_KEYWORDS = {
+    "none", "solid", "dashed", "dotted", "double", "groove", "ridge", "inset", "outset", "hidden",
+    "currentcolor", "transparent", "inherit", "initial", "unset", "revert", "auto", "from-font",
+    "underline", "overline", "line-through", "wavy", "thin", "medium", "thick",
+    # background shorthand
+    "repeat", "no-repeat", "repeat-x", "repeat-y", "space", "round", "center", "top", "bottom",
+    "left", "right", "cover", "contain", "scroll", "fixed", "local",
+    "padding-box", "border-box", "content-box",
+}
+# Properties whose value is, or may carry, a colour: `color`, any `*-color`, and the shorthands.
+COLOUR_SHORTHANDS = {
+    "background", "outline", "text-decoration", "column-rule", "fill", "stroke", "caret",
+    "-webkit-text-stroke", "text-emphasis",
+}
+BORDER_SHORTHAND = re.compile(r"border(?:-(?:top|right|bottom|left|block|inline)(?:-(?:start|end))?)?")
+
+
+def _colour_valued(prop):
+    return (prop == "color" or prop.endswith("-color") or prop in COLOUR_SHORTHANDS
+            or BORDER_SHORTHAND.fullmatch(prop) is not None)
+
+
+def _blank_comments(css):
+    """Comments become spaces, newlines kept, so offsets still give line numbers."""
+    return re.sub(r"/\*.*?\*/", lambda m: re.sub(r"[^\n]", " ", m.group(0)), css, flags=re.DOTALL)
+
+
+def _without_vars(value):
+    """Drop `url(...)`, `!important`, each `var(--name` head and its comma, and the parentheses;
+    a var() fallback stays to be scanned."""
+    value = re.sub(r"url\([^)]*\)|!\s*important", " ", value, flags=re.IGNORECASE)
+    return re.sub(r"var\(\s*--[\w-]+\s*,?|\)", " ", value)
+
+
+def check_css_colours(css, name):
+    """Colours only through custom properties; no gradients, no shadows (PR 3)."""
+    css = _blank_comments(css)
+    problems = []
+    for block in re.finditer(r"\{([^{}]*)\}", css):
+        for decl in re.finditer(r"([\w-]+)\s*:\s*([^;]*)", block.group(1)):
+            prop, value = decl.group(1).lower(), decl.group(2).strip()
+            if prop.startswith("--") or prop == "color-scheme":
+                continue  # a token definition, or a scheme name, not a colour use
+            line = css.count("\n", 0, block.start(1) + decl.start()) + 1
+            where = f"line {line}: {prop}: {value}"
+            if "gradient(" in value.lower():
+                problems.append(Problem(str(name), "gradient", where))
+            elif prop.endswith("shadow") and value.lower() != "none" or "drop-shadow(" in value.lower():
+                problems.append(Problem(str(name), "shadow", where))
+            elif COLOUR_LITERAL.search(_without_vars(value)):
+                problems.append(Problem(str(name), "hard-coded-colour", where))
+            elif _colour_valued(prop):
+                words = re.findall(r"(?<![\w.-])[a-zA-Z][\w-]*", _without_vars(value))
+                if any(w.lower() not in COLOUR_KEYWORDS for w in words if not re.match(r"\d", w)):
+                    problems.append(Problem(str(name), "hard-coded-colour", where))
     return problems
 
 
@@ -459,6 +520,7 @@ def main(argv=None, root=ROOT, external_checker=check_external_url):
         css = (root / css_file).read_text(encoding="utf-8")
         problems += check_css_assets(root / css_file, root, css_url)
         problems += check_contrast(css, css_file)
+        problems += check_css_colours(css, css_file)
         for scheme, fg, bg, ratio, threshold in contrast_report(css):
             print(f"contrast: {scheme} {fg} on {bg} {ratio:.2f}:1 (needs {threshold}:1)")
     _print(problems)

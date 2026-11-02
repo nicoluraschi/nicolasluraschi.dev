@@ -1,5 +1,5 @@
 /* nicolasluraschi.dev: single stylesheet, no JavaScript.
-   Direction H3 ("Ink with petrol blue"). Mobile-first; one breakpoint at 45em. */
+   Direction H3 (Fraunces), terracotta palette. Mobile-first; one breakpoint at 45em. */
 
 /* ---------- Font: Fraunces, self-hosted (SIL OFL 1.1, see /fonts/OFL.txt) ----------
    Latin subset, variable: optical size 9-144, weight 400-700. About 62 KB. */
@@ -18,12 +18,12 @@
   --font: Fraunces, Charter, "Iowan Old Style", Georgia, serif;
 
   /* Colour: light */
-  --bg: #F4F5F5;
-  --surface: #E6EAEB;   /* image frames, diagram cards */
-  --text: #12161A;      /* 16.6:1 on --bg */
-  --muted: #4F5A60;     /* 6.5:1 on --bg, 5.9:1 on --surface */
-  --hair: #D0D6D8;      /* decorative hairlines only, never text */
-  --accent: #0F5C73;    /* 6.9:1 on --bg. Links, one rule, focus ring */
+  --bg: #F6F1EB;
+  --surface: #ECE0D3;   /* tinted toward the accent: image frames, diagram cards, tags */
+  --text: #1E1915;      /* 15.5:1 on --bg */
+  --muted: #5C5047;     /* 6.9:1 on --bg, 6.0:1 on --surface */
+  --hair: #DDD0C2;      /* decorative hairlines only, never text */
+  --accent: #A33D1A;    /* terracotta. 5.8:1 on --bg, 5.0:1 on --surface. Uses: DESIGN.md */
 
   /* Type scale (rem). The base and display steps grow at the breakpoint. */
   --text-sm: 0.875rem;
@@ -55,12 +55,12 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0C1215;
-    --surface: #151E22;
-    --text: #E6EDEF;    /* 15.9:1 */
-    --muted: #9FB0B6;   /* 8.4:1 */
-    --hair: #28363B;
-    --accent: #6CC4DC;  /* 9.5:1 */
+    --bg: #15110E;
+    --surface: #241B15;
+    --text: #F0E8E0;    /* 15.5:1 */
+    --muted: #B9A898;   /* 8.2:1 */
+    --hair: #3A2E25;
+    --accent: #EE9466;  /* 8.1:1 */
   }
 }
 
@@ -179,7 +179,7 @@ h3 {
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--muted);
+  color: var(--accent);
 }
 
 /* ---------- Home: hero ---------- */
@@ -218,14 +218,16 @@ h3 {
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+  color: var(--accent);
 }
 .stack dd { display: inline; margin: 0; }
 .tag {
   display: inline-block;
   padding: 0 0.45rem;
-  border: 1px solid var(--muted);
+  border: 1px solid var(--accent);
   border-radius: 3px;
-  color: var(--muted);
+  background: var(--surface);
+  color: var(--accent);
   font-size: 0.8125rem;
   font-weight: 400;
   letter-spacing: 0;
@@ -256,7 +258,7 @@ h3 {
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--muted);
+  color: var(--accent);
 }
 .toolbox dd { margin: 0; }
 
@@ -300,7 +302,7 @@ h3 {
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--muted);
+  color: var(--accent);
 }
 
 /* Workflow diagram: a visual summary of the numbered list below it (hidden from assistive tech). */
@@ -324,7 +326,7 @@ h3 {
   border-radius: 4px;
   background: var(--surface);
 }
-.flow .n { font-size: var(--text-xl); line-height: 1; color: var(--muted); font-variant-numeric: lining-nums tabular-nums; }
+.flow .n { font-size: var(--text-xl); line-height: 1; color: var(--accent); font-variant-numeric: lining-nums tabular-nums; }
 .flow .t { font-weight: 700; line-height: var(--leading-snug); }
 .chip {
   display: inline-block;
