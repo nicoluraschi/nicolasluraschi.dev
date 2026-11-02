@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test';
 import { PAGES, SCHEMES, assertScheme, fixtureUrl, horizontalOverflow } from './helpers.mjs';
 
-// AC7. 320 and 360px are the narrowest phones the design promises to fit.
-for (const width of [320, 360]) {
+// AC7. 320 and 360px are the narrowest phones the design promises to fit; 768 and 1280px cover
+// the tablet and wide layouts (PR 4).
+for (const width of [320, 360, 768, 1280]) {
   for (const { url } of PAGES) {
     for (const scheme of SCHEMES) {
       test(`${url} does not scroll sideways at ${width}px in ${scheme} mode`, async ({ page }) => {

@@ -1,5 +1,5 @@
 /* nicolasluraschi.dev: single stylesheet, no JavaScript.
-   Direction H3 (Fraunces), terracotta palette. Mobile-first; one breakpoint at 45em. */
+   Direction H3 (Fraunces), terracotta palette. Mobile-first; breakpoints at 45em, plus 70em for the essay's contents column. */
 
 /* ---------- Font: Fraunces, self-hosted (SIL OFL 1.1, see /fonts/OFL.txt) ----------
    Latin subset, variable: optical size 9-144, weight 400-700. About 62 KB. */
@@ -276,9 +276,25 @@ h3 {
 .links a { display: inline-flex; align-items: center; min-height: 2.75rem; }
 .links .cv { font-size: var(--text-lg); font-weight: 700; }
 
-/* ---------- Essay ---------- */
-.essay { max-width: var(--measure); margin-inline: auto; padding-top: var(--space-6); }
+/* ---------- Essay ----------
+   One column with the contents first; from 70em the contents sit in a sticky column beside the
+   body. Prose keeps the measure; diagrams (.diagram) take the whole content column. */
+.essay { max-width: var(--wide); margin-inline: auto; padding-top: var(--space-6); }
+.essay-head > *,
+.essay-body > section > :not(.diagram) { max-width: var(--measure); }
 .essay h1 { margin-bottom: var(--space-5); }
+
+.toc { margin-bottom: var(--space-6); font-size: var(--text-sm); line-height: 1.4; }
+.toc-h {
+  margin-bottom: var(--space-2);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.essay .toc ol { margin: 0; padding: 0; list-style: none; }
+.essay .toc li { margin: 0; padding: 0; }
+.toc a { display: block; padding-block: var(--space-1); }
 .essay h2 { margin: var(--space-7) 0 var(--space-4); font-size: var(--text-xl); line-height: 1.15; letter-spacing: -0.015em; }
 .essay .lead { font-size: var(--text-lg); }
 .essay ul, .essay ol { padding-left: 1.4rem; }
@@ -319,12 +335,9 @@ h3 {
   display: grid;
   grid-template-columns: 2.25rem minmax(0, 1fr);
   align-items: start;
+  align-content: start;         /* a card shorter than its row keeps its content at the top */
   gap: var(--space-3);
   margin: 0;
-  padding: var(--space-4);
-  border: 1px solid var(--hair);
-  border-radius: 4px;
-  background: var(--surface);
 }
 .flow .n { font-size: var(--text-xl); line-height: 1; color: var(--accent); font-variant-numeric: lining-nums tabular-nums; }
 .flow .t { font-weight: 700; line-height: var(--leading-snug); }
@@ -339,8 +352,73 @@ h3 {
   font-weight: 700;
 }
 
+/* Diagrams share one card look: --surface, a hairline, 4px corners. */
+.diagram { margin: 0 0 var(--space-5); }
+.essay .flow li,
+.essay .roles li,
+.guards {
+  padding: var(--space-4);
+  border: 1px solid var(--hair);
+  border-radius: 4px;
+  background: var(--surface);
+}
+
+/* Who does what: one card per party. */
+.essay .roles { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); padding: 0; list-style: none; }
+.essay .roles li { margin: 0; }
+.roles p { margin: 0; }
+.roles .who { margin-bottom: var(--space-2); font-size: var(--text-lg); font-weight: 700; line-height: var(--leading-snug); }
+.roles .who span,
+.risk thead span,
+.guards figcaption {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: 1.4;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.risk thead span { text-transform: none; letter-spacing: 0; font-weight: 400; }
+
+/* Process sized by risk: a real table, lanes across, steps down. */
+.risk {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+}
+.risk caption { margin-bottom: var(--space-2); text-align: left; color: var(--muted); }
+.risk th, .risk td { padding: var(--space-2); border-top: 1px solid var(--hair); text-align: left; vertical-align: top; overflow-wrap: break-word; }
+.risk th { font-weight: 700; }
+
+/* Phones: four columns are too narrow to read, so each step becomes a card listing its lanes.
+   The column headers stay in the table for screen readers, and the visible lane label is given
+   an empty text alternative so it is not announced twice. */
+@media (max-width: 44.99em) {
+  .risk, .risk tbody, .risk tr, .risk th { display: block; }
+  .risk { border: 0; background: none; }
+  .risk thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .risk tr { padding: var(--space-3) var(--space-4); border: 1px solid var(--hair); border-radius: 4px; background: var(--surface); }
+  .risk tr + tr { margin-top: var(--space-2); }
+  .risk th, .risk td { padding: 0; border: 0; }
+  .risk tbody th { margin-bottom: var(--space-1); }
+  .risk td { display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); gap: var(--space-2); }
+  .risk td + td { margin-top: var(--space-1); }
+  .risk td::before { content: attr(data-lane); content: attr(data-lane) / ""; color: var(--muted); }
+}
+
+/* Guardrails: what the hooks block. */
+.guards figcaption { margin-bottom: var(--space-2); }
+.essay .guards ul { margin: 0; }
+.essay .guards li { margin-bottom: var(--space-2); }
+.essay .guards li:last-child { margin-bottom: 0; }
+
 .essay-page .site-header,
-.essay-page .site-footer { max-width: var(--measure); margin-inline: auto; }
+.essay-page .site-footer { max-width: var(--wide); margin-inline: auto; }
 
 /* ---------- Wide screens ---------- */
 @media (min-width: 45em) {
@@ -364,7 +442,26 @@ h3 {
   .toolbox > div { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); column-gap: var(--col-gap); }
   .org { margin-bottom: var(--space-5); }
 
-  .flow { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-inline: -2rem; }
+  .flow { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .essay .roles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .risk { font-size: var(--text-base); }
+  .risk th, .risk td { padding: var(--space-3); }
   .essay .flow li { grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
-  .pullquote { margin-inline: -2rem; }
+}
+
+@media (min-width: 70em) {
+  .essay article {
+    display: grid;
+    grid-template-columns: 12rem minmax(0, 1fr);
+    column-gap: var(--col-gap);
+  }
+  .essay-head, .essay-body { grid-column: 2; }
+  .toc {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    align-self: start;
+    position: sticky;
+    top: var(--space-5);
+    margin-bottom: 0;
+  }
 }

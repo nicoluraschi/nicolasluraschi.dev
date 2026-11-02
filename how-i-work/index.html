@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>How I work with AI · Nicolás Luraschi</title>
-<meta name="description" content="Claude writes, Codex reviews, I decide. The risk-sized, tests-first, hook-enforced workflow behind RunHub and Marginalia.">
+<meta name="description" content="Claude writes, Codex reviews the risky work, I decide. The risk-sized, tests-first, hook-enforced workflow behind RunHub and Marginalia.">
 <link rel="preload" href="/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/style.css">
 </head>
@@ -18,51 +18,117 @@
 
 <main id="main" class="essay">
   <article>
-    <h1>How I work with AI</h1>
-    <p class="lead">AI agents are fast at producing code and unreliable at judging it. So I built a workflow where the agents do the implementation and every decision that matters goes through me: what we build, how it's designed, how we'll know it works, and what gets merged.</p>
+    <header class="essay-head">
+      <h1>How I work with AI</h1>
+      <p class="lead">AI agents are fast at producing code and unreliable at judging it. So I built a workflow where the agents do the implementation and every decision that matters goes through me: what we build, how it's designed, how we'll know it works, and what gets merged.</p>
 
-    <p class="pullquote"><span>In one line</span>Claude writes, Codex reviews, I decide.</p>
+      <p class="pullquote"><span>In one line</span>Claude writes, Codex reviews the risky work, I decide.</p>
+    </header>
 
-    <h2>The tools</h2>
-    <ul>
-      <li><strong>Claude Code</strong> (Anthropic) is the main agent: it plans, writes code and tests, and runs the checks. Smaller, cheaper models handle searching and routine sub-tasks.</li>
-      <li><strong>Codex CLI</strong> (OpenAI) is a second opinion from a different provider. On high-risk work it critiques the spec, the plan and the final diff, read-only.</li>
-      <li><strong>Zed</strong> is where I read and review the code.</li>
-      <li><strong>GitHub</strong> holds every change as a small pull request.</li>
-    </ul>
-    <p>All of it lives in one versioned repository. The files <em>are</em> the live setup: change one and the next session behaves differently.</p>
+    <nav class="toc" aria-label="Contents">
+      <p class="toc-h">Contents</p>
+      <ol>
+        <li><a href="#tools">The tools</a></li>
+        <li><a href="#who">Who does what</a></li>
+        <li><a href="#flow">How a piece of work flows</a></li>
+        <li><a href="#risk">Process sized by risk</a></li>
+        <li><a href="#mine">What's automatic and what's mine</a></li>
+        <li><a href="#principles">Principles</a></li>
+      </ol>
+    </nav>
 
-    <h2>How a piece of work flows</h2>
-    <ol class="flow" aria-hidden="true">
-      <li><span class="n">1</span><div><span class="t">Classify it out loud.</span></div></li>
-      <li><span class="n">2</span><div><span class="t">Plan, then wait for my "go".</span><br><span class="chip">My call</span></div></li>
-      <li><span class="n">3</span><div><span class="t">Tests first.</span></div></li>
-      <li><span class="n">4</span><div><span class="t">Review in proportion to risk.</span><br><span class="chip">Codex, on risky work</span></div></li>
-      <li><span class="n">5</span><div><span class="t">Prove it.</span></div></li>
-      <li><span class="n">6</span><div><span class="t">One small PR per concern</span><br><span class="chip">My call to merge</span></div></li>
-    </ol>
-    <ol>
-      <li><strong>Classify it out loud.</strong> A one-line fix, a routine feature and a change touching login, money or personal data each get a different amount of process.</li>
-      <li><strong>Plan, then wait for my "go".</strong> The plan states what's in, what's out, how we'll know it works, and every assumption as a question. No code before I approve it.</li>
-      <li><strong>Tests first.</strong> A failing test, then the code that makes it pass.</li>
-      <li><strong>Review in proportion to risk.</strong> Routine work gets an automated code review. Risky work also gets a security threat model, a written spec and Codex's critique.</li>
-      <li><strong>Prove it.</strong> "Done" means real test output, not a claim that it passed.</li>
-      <li><strong>One small PR per concern</strong>, each in its own isolated copy of the repository, so parallel sessions never collide.</li>
-    </ol>
+    <div class="essay-body">
+      <section id="tools">
+        <h2>The tools</h2>
+        <ul>
+          <li><strong>Claude Code</strong> (Anthropic) is the main agent: it plans, writes code and tests, and runs the checks. Smaller, cheaper models handle searching and routine sub-tasks.</li>
+          <li><strong>Codex CLI</strong> (OpenAI) is a second opinion from a different provider. On high-risk work it critiques the spec and the plan, read-only; on changes touching login, money or personal data, the final diff too.</li>
+          <li><strong>Zed</strong> is where I read and review the code.</li>
+          <li><strong>GitHub</strong> holds every change as a small pull request.</li>
+        </ul>
+        <p>All of it lives in one versioned repository. The files <em>are</em> the live setup: change one and the next session behaves differently.</p>
+      </section>
 
-    <h2>What's automatic and what's mine</h2>
-    <p>Much of the know-how is packaged as <em>skills</em>: instructions the agent loads for a specific job, like a security audit, a UI review or test-driven development.</p>
-    <p>The AI follows written instructions most of the time, not always. So the rules that matter are enforced by <em>hooks</em>, small scripts that can block an action: no edits on the main branch, no commit while tests are red, no ending a session while a security audit is owed.</p>
-    <p>What stays mine: approving plans, product and taste calls, anything touching security or privacy, and the final merge. When in doubt, the agent stops and asks.</p>
+      <section id="who">
+        <h2>Who does what</h2>
+        <p>Each party has one job, and only one of them decides.</p>
+        <ul class="roles diagram">
+          <li><p class="who">Me <span>decides</span></p><p>What we build and what's out; every plan; product, taste, security and privacy calls; and the final merge.</p></li>
+          <li><p class="who">Claude Code <span>writes</span></p><p>Plans, writes the code and the tests, runs the checks and shows the real output.</p></li>
+          <li><p class="who">Codex <span>reviews risky work</span></p><p>From a different provider and read-only, it critiques the spec and the plan on high-risk work, and the final diff on login, money or personal data.</p></li>
+        </ul>
+      </section>
 
-    <h2>Principles</h2>
-    <ul>
-      <li><strong>Plan before code.</strong> Most of the alignment with the AI happens at the plan, not the diff.</li>
-      <li><strong>Small diffs.</strong> A change too big to review properly doesn't get merged.</li>
-      <li><strong>Security is never skipped</strong> for looking small.</li>
-      <li><strong>Two providers, not one.</strong> The model that wrote the code doesn't get the last word on it.</li>
-      <li><strong>Measure the setup itself.</strong> I audit token cost and time from real sessions and drop the process that doesn't pay for itself.</li>
-    </ul>
+      <section id="flow">
+        <h2>How a piece of work flows</h2>
+        <ol class="flow diagram" aria-hidden="true">
+          <li><span class="n">1</span><div><span class="t">Classify it out loud.</span></div></li>
+          <li><span class="n">2</span><div><span class="t">Plan, then wait for my "go".</span><br><span class="chip">My call</span></div></li>
+          <li><span class="n">3</span><div><span class="t">Tests first.</span></div></li>
+          <li><span class="n">4</span><div><span class="t">Review in proportion to risk.</span><br><span class="chip">Codex, on risky work</span></div></li>
+          <li><span class="n">5</span><div><span class="t">Prove it.</span></div></li>
+          <li><span class="n">6</span><div><span class="t">One small PR per concern</span><br><span class="chip">My call to merge</span></div></li>
+        </ol>
+        <ol>
+          <li><strong>Classify it out loud.</strong> A one-line fix, a routine feature and a change touching login, money or personal data each get a different amount of process.</li>
+          <li><strong>Plan, then wait for my "go".</strong> The plan states what's in, what's out, how we'll know it works, and every blocking assumption as a question. No code before I approve it.</li>
+          <li><strong>Tests first.</strong> A failing test, then the code that makes it pass.</li>
+          <li><strong>Review in proportion to risk.</strong> Routine work gets an automated code review. Risky work also gets a security threat model, a written spec and Codex's critique.</li>
+          <li><strong>Prove it.</strong> "Done" means real test output, not a claim that it passed.</li>
+          <li><strong>One small PR per concern</strong>, each in its own isolated copy of the repository, so parallel sessions never collide.</li>
+        </ol>
+      </section>
+
+      <section id="risk">
+        <h2>Process sized by risk</h2>
+        <p>Process costs time, so it scales with what a change can break. A one-line fix doesn't get a threat model; a change touching login, money or personal data doesn't skip one.</p>
+        <table class="risk diagram">
+          <caption>How much process each kind of change gets</caption>
+          <thead>
+            <tr>
+              <td></td>
+              <th scope="col">Trivial <span>a fix, a config change</span></th>
+              <th scope="col">Light <span>a routine feature</span></th>
+              <th scope="col">High-risk <span>login, money, personal data, the data model</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Plan</th><td data-lane="Trivial">Short plan, my "go"</td><td data-lane="Light">Plan with its test cases, my "go"</td><td data-lane="High-risk">Written spec, then a plan, my "go"</td></tr>
+            <tr><th scope="row">Tests</th><td data-lane="Trivial">Tests first</td><td data-lane="Light">Tests first</td><td data-lane="High-risk">Tests first</td></tr>
+            <tr><th scope="row">Review</th><td data-lane="Trivial">Suite, coverage and scope check</td><td data-lane="Light">Automated code review</td><td data-lane="High-risk">A deeper automated code review</td></tr>
+            <tr><th scope="row">Second provider</th><td data-lane="Trivial">No</td><td data-lane="Light">No</td><td data-lane="High-risk">Codex critiques the spec and the plan; the diff too on login, money or personal data</td></tr>
+            <tr><th scope="row">Security</th><td data-lane="Trivial">Code audit if it touches a sensitive path</td><td data-lane="Light">Risk triage and a code audit</td><td data-lane="High-risk">Threat model, design review and code audit</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="mine">
+        <h2>What's automatic and what's mine</h2>
+        <p>Much of the know-how is packaged as <em>skills</em>: instructions the agent loads for a specific job, like a security audit, a UI review or test-driven development.</p>
+        <p>The AI follows written instructions most of the time, not always. So the rules that matter are enforced by <em>hooks</em>, small scripts that can block an action before it happens:</p>
+        <figure class="guards diagram">
+          <figcaption>What the hooks block</figcaption>
+          <ul>
+            <li>Edits on the main branch, including ones made through the shell.</li>
+            <li>A commit while the last test run was red.</li>
+            <li>Ending a session while a security audit is owed.</li>
+            <li>Launching the QA agent without asking me first.</li>
+          </ul>
+        </figure>
+        <p>What stays mine: approving plans, product and taste calls, anything touching security or privacy, and the final merge. When in doubt, the agent stops and asks.</p>
+      </section>
+
+      <section id="principles">
+        <h2>Principles</h2>
+        <ul>
+          <li><strong>Plan before code.</strong> Most of the alignment with the AI happens at the plan, not the diff.</li>
+          <li><strong>Small diffs.</strong> A change too big to review properly doesn't get merged.</li>
+          <li><strong>Security is never skipped</strong> for looking small.</li>
+          <li><strong>Two providers, not one.</strong> The model that wrote the code doesn't get the last word on it.</li>
+          <li><strong>Measure the setup itself.</strong> I audit token cost and time from real sessions and drop the process that doesn't pay for itself.</li>
+        </ul>
+      </section>
+    </div>
   </article>
 </main>
 
