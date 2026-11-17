@@ -188,7 +188,9 @@ test('the page opens with what this means for a team, backed by experience', asy
   await expect(team.locator('h2')).toHaveText('What this means for a team');
   await expect(team).toContainText('nine years');
   await expect(team).toContainText('Head of Technology');
-  await expect(team).toContainText("repos I don't own");
+  // Not yet used on a client repo: the copy describes the design, not past experience.
+  await expect(team).toContainText("built to work in repos I don't own");
+  await expect(team).not.toContainText('the setup works in repos');
   await expect(team.locator('a[href="/#work-h"]')).toHaveCount(1);
   // The workflow grew with the products; it didn't exist in full when they started.
   await expect(team).toContainText('grew out of building');
