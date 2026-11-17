@@ -246,8 +246,10 @@ test('guardrails and the improvement loop are described', async ({ page }) => {
   await expect(guardrails).toContainText('new endpoint');
   const improves = page.locator('#improves');
   await expect(improves).toContainText('logs what it found');
-  // The recorded reason for the cap: measurement showed much of what it reported wasn't acted on.
-  await expect(improves).toContainText("after the logs showed much of what it reported wasn't worth acting on");
+  await expect(improves).toContainText("the process changes when one doesn't.");
+  // The owner dropped the review-cap example.
+  await expect(improves).not.toContainText('five most important');
+  await expect(improves).not.toContainText('worth acting on');
   await expect(improves).toContainText('weekly study session');
 });
 
