@@ -88,12 +88,14 @@ test('contents links name the sections in order and reach them', async ({ page }
   }
 });
 
-test('the essay carries the four diagrams, and only the flow is hidden', async ({ page }) => {
+test('the essay carries the five diagrams, and only the flow is hidden', async ({ page }) => {
   await open(page, 1280);
   const classes = await page.locator('.diagram').evaluateAll((els) => els.map((el) => el.classList[0]));
-  expect(classes).toEqual(['roles', 'flow', 'risk', 'guards']);
+  expect(classes).toEqual(['roles', 'flow', 'risk', 'loop', 'guards']);
   const hidden = await page.locator('[aria-hidden="true"]').evaluateAll((els) => els.map((el) => el.className));
-  expect(hidden).toEqual(['flow diagram']);
+  // The loop is read as a list; only its visual step numbers are hidden, so they aren't read twice.
+  expect(hidden).toEqual(['flow diagram', 'n', 'n', 'n', 'n', 'n']);
+  await expect(page.locator('.loop .n:not([aria-hidden="true"])')).toHaveCount(0);
 });
 
 test('the flow diagram and the numbered list under it name the same six steps', async ({ page }) => {
@@ -141,6 +143,67 @@ test('the pull-quote says a second provider reviews the risky work', async ({ pa
   await open(page, 1280);
   await expect(page.locator('.pullquote')).toContainText('Codex reviews the risky work');
   await expect(page.locator('#flow')).toContainText('every blocking assumption');
+});
+
+// The rewrite against the real setup: each claim below is scoped to what the workflow does.
+test('the cross-review loop is a readable list of steps with a two-round limit', async ({ page }) => {
+  await open(page, 1280);
+  const loop = page.locator('figure.loop');
+  await expect(loop.locator('figcaption')).toContainText('at most two rounds');
+  const steps = loop.locator('ol > li');
+  await expect(steps).toHaveCount(5);
+  await expect(loop.locator('ol > li .n')).toHaveText(['1', '2', '3', '4', '5']);
+  await expect(steps.nth(2)).toContainText('accepted');
+  await expect(steps.nth(2)).toContainText('rejected');
+  await expect(steps.nth(3)).toContainText('no third');
+});
+
+test('who writes the code is stated per tier, and Codex needs consent', async ({ page }) => {
+  await open(page, 1280);
+  for (const id of ['#tools', '#who']) {
+    await expect(page.locator(id)).toContainText('separate agent writes the code and the tests');
+  }
+  await expect(page.locator('#tools')).toContainText('allowed code to go to a second provider');
+  // Every other Codex claim carries the same consent scope.
+  const consent = /where I've allowed it/i;
+  await expect(page.locator('#flow ol:not(.flow) > li').nth(3)).toContainText(consent);
+  await expect(page.locator('table.risk tbody tr').nth(3).locator('td').nth(2)).toContainText(consent);
+  await expect(page.locator('#second-opinion > p').first()).toContainText(consent);
+});
+
+test('the security and data checks claim no more than the setup does', async ({ page }) => {
+  await open(page, 1280);
+  const guardrails = page.locator('#guardrails');
+  await expect(guardrails).toContainText('or I record an override');
+  await expect(guardrails).toContainText('A migration gets a migration-safety review');
+  await expect(guardrails).toContainText('a schema or constraint change, a data-integrity review');
+});
+
+test('the hooks list says what they actually stop', async ({ page }) => {
+  await open(page, 1280);
+  const guards = page.locator('figure.guards');
+  await expect(guards).toContainText('caught before the turn can end');
+  await expect(guards).toContainText('Ending a turn while a security audit is owed');
+  await expect(guards).not.toContainText('including ones made through the shell');
+});
+
+test('the high-risk lane names every trigger and the review I launch', async ({ page }) => {
+  await open(page, 1280);
+  const head = page.locator('table.risk thead th').nth(2);
+  await expect(head).toContainText('dependencies');
+  await expect(head).toContainText('new subsystems');
+  await expect(page.locator('table.risk tbody tr').nth(2).locator('td').nth(2)).toContainText('I launch');
+});
+
+test('guardrails and the improvement loop are described', async ({ page }) => {
+  await open(page, 1280);
+  const guardrails = page.locator('#guardrails');
+  await expect(guardrails).toContainText('never the conversation');
+  await expect(guardrails).toContainText('migration');
+  await expect(guardrails).toContainText('new endpoint');
+  const improves = page.locator('#improves');
+  await expect(improves).toContainText('logs what it found');
+  await expect(improves).toContainText('weekly study session');
 });
 
 test('headings run h1, then h2, with no level skipped', async ({ page }) => {

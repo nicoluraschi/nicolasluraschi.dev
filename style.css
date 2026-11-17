@@ -376,7 +376,8 @@ h3 {
   list-style: none;
 }
 .essay .flow { padding: 0; }
-.essay .flow li {
+.essay .flow li,
+.essay .loop li {
   display: grid;
   grid-template-columns: 2.25rem minmax(0, 1fr);
   align-items: start;
@@ -384,7 +385,8 @@ h3 {
   gap: var(--space-3);
   margin: 0;
 }
-.flow .n { font-size: var(--text-xl); line-height: 1; color: var(--accent); font-variant-numeric: lining-nums tabular-nums; }
+.flow .n,
+.loop .n { font-size: var(--text-xl); line-height: 1; color: var(--accent); font-variant-numeric: lining-nums tabular-nums; }
 .flow .t { font-weight: 700; line-height: var(--leading-snug); }
 .chip {
   display: inline-block;
@@ -401,6 +403,7 @@ h3 {
 .diagram { margin: 0 0 var(--space-5); }
 .essay .flow li,
 .essay .roles li,
+.essay .loop li,
 .guards {
   padding: var(--space-4);
   border: 1px solid var(--hair);
@@ -415,6 +418,7 @@ h3 {
 .roles .who { margin-bottom: var(--space-2); font-size: var(--text-lg); font-weight: 700; line-height: var(--leading-snug); }
 .roles .who span,
 .risk thead span,
+.loop figcaption,
 .guards figcaption {
   display: block;
   font-size: var(--text-sm);
@@ -456,7 +460,12 @@ h3 {
   .risk td::before { content: attr(data-lane); content: attr(data-lane) / ""; color: var(--muted); }
 }
 
+/* The second opinion: the cross-review loop, one numbered card per step (cards share the flow's grid). */
+.essay .loop ol { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.loop li p { margin: 0; }
+
 /* Guardrails: what the hooks block. */
+.loop figcaption,
 .guards figcaption { margin-bottom: var(--space-2); }
 .essay .guards ul { margin: 0; }
 .essay .guards li { margin-bottom: var(--space-2); }
@@ -533,5 +542,5 @@ h3 {
     white-space: normal;          /* the link itself is nowrap; its printed URL may wrap */
     overflow-wrap: anywhere;
   }
-  .job, .work, .diagram, .essay .flow li, .essay .roles li, .risk tr { break-inside: avoid; }
+  .job, .work, .diagram, .essay .flow li, .essay .roles li, .essay .loop li, .risk tr { break-inside: avoid; }
 }
