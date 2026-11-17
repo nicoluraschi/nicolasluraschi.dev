@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nicolás Luraschi · Senior Software Engineer</title>
-<meta name="description" content="Senior software engineer with engineering leadership experience. Ruby on Rails, PostgreSQL, AI-first engineering workflow. Montevideo, Uruguay, UTC-3.">
+<meta name="description" content="Senior engineer: nine years building software, mostly for US companies, two as Head of Technology. Rails, PostgreSQL, AI-first workflow. Montevideo, UTC-3.">
 <meta property="og:title" content="Nicolás Luraschi · Senior Software Engineer">
-<meta property="og:description" content="Senior software engineer with engineering leadership experience. Ruby on Rails, PostgreSQL, AI-first engineering workflow. Montevideo, Uruguay, UTC-3.">
+<meta property="og:description" content="Senior engineer: nine years building software, mostly for US companies, two as Head of Technology. Rails, PostgreSQL, AI-first workflow. Montevideo, UTC-3.">
 <meta property="og:image" content="https://nicolasluraschi.dev/img/og.png">
 <meta property="og:url" content="https://nicolasluraschi.dev/">
 <meta name="twitter:card" content="summary_large_image">
@@ -29,18 +29,24 @@
     <div class="hero-head">
       <h1 id="name">Nicolás Luraschi</h1>
       <p class="role">Senior Software Engineer</p>
-      <p class="meta">Montevideo, Uruguay · UTC-3, full overlap with US Eastern hours</p>
+      <p class="meta">Montevideo, Uruguay · UTC-3</p>
     </div>
     <div class="hero-body">
-      <p class="lead">Nine years building software for US clients, with deep backend experience in Ruby on Rails and PostgreSQL. I grew from developer to senior engineer and into engineering leadership, kept a hands-on project alongside it, and have now chosen to return to day-to-day engineering.</p>
-      <p>I work AI-first, inside an engineering workflow I designed and keep versioned: plans approved before any code, tests first, a second model from another provider as independent reviewer, and the rules that matter enforced by hooks. Agents do the implementation; I own the architecture, the plan, the trade-offs and what gets merged.</p>
+      <p class="lead">Senior engineer with nine years building software, mostly for US companies, with deep roots in Ruby on Rails and PostgreSQL. I've been the technical reference on long-running products, built systems from scratch, and spent two years co-leading an engineering area of about 35 people. I move easily between the technical detail and the bigger picture.</p>
     </div>
   </section>
 
   <section aria-labelledby="about-h">
     <h2 class="sec-h" id="about-h">About</h2>
-    <p class="prose">I spent nine years at one consultancy, working for clients in EdTech, fintech, e-commerce and B2B, so a new domain, codebase and team is the normal case for me. Leadership grew out of the work: from developer with extra responsibilities, to the technical reference on a five-year project, to Head of Technology. Going back to hands-on engineering is a choice, not a step back: I want to build again, and I bring the leadership view with me, making technical calls that account for people, process and the business.</p>
+    <p class="prose">Much of my work has been on products already running: joining an existing codebase, understanding why it is the way it is, and changing it safely, from moving a Rails monolith to an API to framework upgrades on a live system and PostgreSQL performance over large data volumes. Working across EdTech, fintech, e-commerce and B2B made a new domain, team and codebase routine.</p>
+    <p class="prose">Leadership grew out of that work, from technical reference and mentor to Head of Technology, setting technical and security standards and supporting the technical leads. I bring that view to the code: technical calls that account for people, process and the business.</p>
     <p class="prose">Languages: Spanish (native) · English: professional working proficiency (B2)</p>
+  </section>
+
+  <section aria-labelledby="ai-h">
+    <h2 class="sec-h" id="ai-h">How I work with AI</h2>
+    <p class="prose">I build AI-first, inside a workflow I designed and keep under version control. Every change starts as a plan I approve; tests come before code; on high-risk work a second model from another provider reviews the spec and the plan; and the rules that matter, like security checks, are enforced by hooks instead of remembered. I've also used Claude Code plan-first on client work. Agents write the code; I own the architecture, the plan, the trade-offs and what gets merged.</p>
+    <p class="prose"><a href="/how-i-work">Read the full workflow →</a></p>
   </section>
 
   <section aria-labelledby="work-h">
@@ -48,13 +54,14 @@
 
     <article class="work">
       <div class="work-text">
-        <h3>Marginalia · <a href="https://readmarginalia.app" rel="noopener">readmarginalia.app</a> <span class="tag">invite-only</span></h3>
-        <p>A private reading journal in production: highlights captured from a photo with in-browser OCR, verified nightly backups with a restore runbook, data export and account deletion, an SSRF allowlist for fetching book covers, and image re-encoding.</p>
+        <h3>Marginalia <span class="site">· <a href="https://readmarginalia.app" rel="noopener">readmarginalia.app</a></span> <span class="tag">limited sign-up</span></h3>
+        <p>A private reading journal, not a social tracker: your library and reading queue, passages you highlight (photograph the page and in-browser OCR turns it into text), and dated reflections on what a book left you, in English and Spanish. Built to be trusted with years of someone's notes: encrypted daily backups with a tested restore, full data export and account deletion.</p>
         <dl class="stack">
           <div><dt>Backend</dt><dd>Rails 8.1 API · Solid Queue · Solid Cache</dd></div>
-          <div><dt>Frontend</dt><dd>Next.js</dd></div>
+          <div><dt>Frontend</dt><dd>Next.js · TypeScript · Tailwind CSS · tesseract.js (OCR)</dd></div>
           <div><dt>Data &amp; hosting</dt><dd>PostgreSQL on Supabase · Render · Vercel · Cloudflare R2</dd></div>
-          <div><dt>Quality</dt><dd>85% backend coverage gate · Sentry</dd></div>
+          <div><dt>Quality</dt><dd>Brakeman · Semgrep · gitleaks · dependency audits · Sentry</dd></div>
+          <div><dt>Operations</dt><dd>encrypted daily backups · restore runbook · Healthchecks.io</dd></div>
         </dl>
       </div>
       <figure class="shot"><a href="/img/marginalia.png"><img src="/img/marginalia.png" width="1280" height="800" loading="lazy" alt="Marginalia: a reading library with the book in progress and shelves by status"></a></figure>
@@ -62,14 +69,15 @@
 
     <article class="work">
       <div class="work-text">
-        <h3>RunHub · <a href="https://runhub.uy" rel="noopener">runhub.uy</a></h3>
-        <p>A race-discovery platform for Uruguay, in production since August 2026 with a non-technical product owner. Before automating data entry I ran a blind LLM extraction test against hand-built ground truth, with the pass bar set in advance. It missed, so I redesigned the product around AI discovery with human approval, which is what runs today. About 1,850 automated tests, an 85% coverage gate and security scanning in CI.</p>
+        <h3>RunHub <span class="site">· <a href="https://runhub.uy" rel="noopener">runhub.uy</a></span></h3>
+        <p>Every running race in Uruguay, in one place. The website is the easy part; the hard part is keeping the calendar complete and current with a few hours of work a week. An AI pipeline reads organizer and calendar sites, has Gemini extract each race into a strict schema, then validates and de-duplicates the results and queues them for review. Nothing is published until a person approves it. Fetching is SSRF-safe and every run has a cost cap.</p>
         <dl class="stack">
           <div><dt>Backend</dt><dd>Rails 8.1 API · Avo admin</dd></div>
-          <div><dt>Frontend</dt><dd>Next.js</dd></div>
+          <div><dt>Frontend</dt><dd>Next.js · TypeScript · Tailwind CSS, statically generated</dd></div>
           <div><dt>Data &amp; hosting</dt><dd>PostgreSQL · Render · Vercel · Cloudflare R2 · Bunny CDN</dd></div>
-          <div><dt>Quality</dt><dd>RSpec · Brakeman · gitleaks · Semgrep · Sentry</dd></div>
-          <div><dt>AI</dt><dd>Gemini with structured output</dd></div>
+          <div><dt>Quality</dt><dd>RSpec · Brakeman · Semgrep · gitleaks · Sentry</dd></div>
+          <div><dt>Operations</dt><dd>encrypted daily backups · Healthchecks.io</dd></div>
+          <div><dt>AI</dt><dd>Gemini with JSON Schema output · versioned prompts · provider-agnostic adapter</dd></div>
         </dl>
       </div>
       <figure class="shot"><a href="/img/runhub.png"><img src="/img/runhub.png" width="1280" height="800" loading="lazy" alt="RunHub home page: upcoming Uruguayan races with filters"></a></figure>
@@ -77,28 +85,29 @@
 
     <article class="work">
       <div class="work-text">
-        <h3>Winnow · <a href="https://winnow.page" rel="noopener">winnow.page</a> <span class="tag">in progress</span></h3>
-        <p>An information agent that picks what deserves your time against your own interests. An early build, not usable yet, and where I am learning TypeScript and Node.js on the backend.</p>
+        <h3>Winnow <span class="tag">in progress</span></h3>
+        <p>An information agent meant to decide what deserves your time. You describe what you care about; it's meant to read your sources and give each item a relevance score, a reason and a reading time, in one inbox. An early build, not usable yet. It's also where I'm learning TypeScript and Node.js on the backend.</p>
         <dl class="stack">
-          <div><dt>Backend</dt><dd>TypeScript · Node.js (Fastify)</dd></div>
-          <div><dt>Frontend</dt><dd>Next.js</dd></div>
+          <div><dt>Backend</dt><dd>TypeScript · Node.js (Fastify) · Zod</dd></div>
           <div><dt>Data &amp; hosting</dt><dd>PostgreSQL · Render · Vercel</dd></div>
         </dl>
       </div>
     </article>
 
     <p class="note">All three designed and owned by me, built with AI agents. Code is private; happy to walk you through it.</p>
-
-    <article class="work">
-      <div class="work-text">
-        <h3><a href="/how-i-work">How I work with AI →</a></h3>
-        <p>The workflow behind all three: risk-sized process, tests first, independent review, and hooks that enforce the rules.</p>
-      </div>
-    </article>
   </section>
 
   <section aria-labelledby="exp-h">
     <h2 class="sec-h" id="exp-h">Experience</h2>
+
+    <article class="job">
+      <div class="job-head">
+        <h3>Independent product work</h3>
+        <p class="dates">2026 – present</p>
+      </div>
+      <p>Designing and running two production apps, RunHub and Marginalia, built with AI agents, and starting a third, Winnow, in TypeScript.</p>
+    </article>
+
     <p class="org"><strong>Neocoast</strong> <span>· Montevideo software consultancy serving mainly US clients · 2017 – 2026</span></p>
 
     <article class="job">
@@ -107,12 +116,12 @@
         <p class="dates">2024 – 2026</p>
       </div>
       <ul>
-        <li>Co-led the engineering area, about 35 people across around ten concurrent client projects.</li>
-        <li>Had three technical leads as direct reports; with them, defined minimum security standards for projects and redesigned how we interview experienced engineers.</li>
-        <li>With the software architects, built the process to survey, track and document each project's technical standards.</li>
-        <li>Supervised an AI-assisted development pilot run by a sub-team with Claude Code and OpenCode. It produced quality and practice guides and grew into a company-wide AI-first effort.</li>
-        <li>Stayed hands-on as sole backend developer and project lead on a B2B pricing and analytics platform: a Rails 7 API designed from scratch around the client's database functions, with Sidekiq, Action Cable and Docker on AWS ECS.</li>
-        <li>Covered an EdTech reading platform alone for a month: an undocumented microservices system with high technical debt. Used Claude Code throughout to fix critical bugs and ship requested features. Also led a technical audit of the platform, co-written with a coworker.</li>
+        <li>Co-led the engineering area (about 35 people, around ten concurrent client projects), with three technical leads as direct reports.</li>
+        <li>Set the technical baseline across projects: minimum security standards with the technical leads, and a process with the software architects to survey and document each project's standards.</li>
+        <li>Redesigned technical interviews for experienced engineers around fundamentals rather than specific stacks.</li>
+        <li>Supervised an AI-assisted development pilot (Claude Code, OpenCode) that grew into a company-wide AI-first effort.</li>
+        <li>Stayed hands-on: designed and built from scratch the Rails 7 API for a B2B pricing and analytics platform as sole backend developer and project lead (Sidekiq, Action Cable, Docker on AWS ECS).</li>
+        <li>Covered an undocumented microservices platform alone for a month using Claude Code, and led its technical audit.</li>
       </ul>
     </article>
 
@@ -123,39 +132,27 @@
       </div>
       <ul>
         <li>Five years on a US EdTech platform for student retention, growing into its most senior developer and technical reference. Led the backend side of its migration from a Rails monolith to a Rails API with a React SPA, including token-based auth, and led its Ruby and Rails upgrades on a live system.</li>
-        <li>Integrations (Twilio, Cronofy, Pusher, Slack), SSO, roles and permissions, and PostgreSQL optimization over large data volumes.</li>
-        <li>Mentored developers through code review and taught the internal Rails program for new developers.</li>
+        <li>Built its integrations (Twilio, Cronofy, Pusher, Slack), SSO, roles and permissions, and optimized PostgreSQL over large data volumes.</li>
+        <li>Full-stack Rails 7 with Hotwire on a fintech internal operations platform, and a Rails system built from zero as sole developer for industrial printer data collection.</li>
+        <li>Taught the internal Rails program for new developers, mentored through code review, and took part in estimations and technical hiring.</li>
       </ul>
-    </article>
-
-    <article class="job">
-      <div class="job-head">
-        <h3>Independent</h3>
-        <p class="dates">2026 – present</p>
-      </div>
-      <p>Marginalia, RunHub and Winnow, above.</p>
     </article>
   </section>
 
   <section aria-labelledby="tools-h">
     <h2 class="sec-h" id="tools-h">Toolbox</h2>
     <dl class="toolbox">
-      <div><dt>Depth</dt><dd>Ruby on Rails, PostgreSQL, REST API design, Sidekiq, Action Cable, RSpec</dd></div>
-      <div><dt>Production</dt><dd>AWS (ECS, ECR, Elastic Beanstalk), Docker, GitHub Actions, Heroku, Render, Sentry, Hotwire</dd></div>
-      <div><dt>AI engineering</dt><dd>Claude Code, multi-model review, LLM integration and evaluation</dd></div>
-      <div><dt>Leadership</dt><dd>technical leadership, mentoring, technical interviewing, estimation</dd></div>
-      <div><dt>Learning</dt><dd>TypeScript and Node.js</dd></div>
+      <div><dt>Core</dt><dd>Ruby, Ruby on Rails (API, monolith, Hotwire), PostgreSQL (query optimization, database functions), REST API design, RSpec, Sidekiq, Redis, Action Cable, authentication and SSO (Devise, OmniAuth)</dd></div>
+      <div><dt>Infrastructure</dt><dd>AWS (ECS, ECR, Elastic Beanstalk), Docker, GitHub Actions, Heroku, Render, Vercel, Sentry, New Relic</dd></div>
+      <div><dt>AI engineering</dt><dd>Claude Code, plan-first agent workflows, multi-model review, LLM structured extraction and evaluation</dd></div>
+      <div><dt>Leadership</dt><dd>technical leadership, mentoring, technical interviewing, estimation, capacity planning, engineering standards</dd></div>
+      <div><dt>Learning</dt><dd>TypeScript, Node.js</dd></div>
     </dl>
-  </section>
-
-  <section aria-labelledby="now-h">
-    <h2 class="sec-h" id="now-h">Now</h2>
-    <p class="prose">Running RunHub and Marginalia in production, and learning TypeScript and Node.js by building Winnow.</p>
   </section>
 
   <section id="contact" aria-labelledby="contact-h">
     <h2 class="sec-h" id="contact-h">Contact</h2>
-    <p class="prose">Open to senior backend and technical lead roles: remote, hybrid or on-site.</p>
+    <p class="prose">Open to senior engineering and technical lead roles: remote, hybrid or on-site.</p>
     <ul class="links">
       <li><a class="cv" href="/luraschi-cv.pdf">CV (PDF)</a></li>
       <li><a href="https://www.linkedin.com/in/nicolas-luraschi-pereira" rel="noopener">LinkedIn</a></li>

@@ -16,11 +16,12 @@ Hand-written HTML + one CSS file. No JavaScript, no build step. Direction "H3" (
 - Keep contrast at WCAG AA or better. If a colour changes, recompute: text 4.5:1, large text and UI 3:1.
 
 ## Structure (home)
-header > main (hero, About, Selected work, Experience, Toolbox, Now, Contact) > footer.
-- Hero: `.hero-head` (name, role, location) + `.hero-body` (lead + paragraph). Two columns from 45em.
+header > main (hero, About, How I work with AI, Selected work, Experience, Toolbox, Contact) > footer.
+- Hero: `.hero-head` (name, role, location) + `.hero-body` (the lead, one paragraph). Two columns from 45em.
 - About: `.prose` paragraphs, the last one the languages line.
-- Work item: `<article class="work">` with `.work-text` and an optional `<figure class="shot">`, whose image links to its own full-size PNG (readable on phones, where it renders small). An item with no figure is valid (Winnow, the "How I work with AI" entry). A project's stack is `dl.stack`, one `div` per layer (`dt` label + `dd` items): Backend, Frontend, Data & hosting, Quality, AI.
-- Job: `<article class="job">`; `.job-head` holds the `h3` (title only) and `p.dates`; content is a `ul` or a `p`.
+- How I work with AI: `.prose` paragraphs, the last one the link to `/how-i-work`.
+- Work item: `<article class="work">` with `.work-text` and an optional `<figure class="shot">`, whose image links to its own full-size PNG (readable on phones, where it renders small). An item with no figure is valid (Winnow, which also has no link until it works). In the `h3`, the "· domain" pair is wrapped in `span.site` (nowrap) so the dot never wraps alone. A project's stack is `dl.stack`, one `div` per layer (`dt` label + `dd` items): Backend, Frontend, Data & hosting, Quality, Operations, AI.
+- Job: `<article class="job">`; `.job-head` holds the `h3` (title only) and `p.dates`; content is a `ul` or a `p`. Newest first: Independent product work, then the `p.org` line and the Neocoast roles. A `.org` that follows a `.job` gets its own hairline and space above, so it heads the roles below it.
 - Toolbox: `dl.toolbox`, one `div` per row (`dt` + `dd`). Add or remove rows freely.
 - Contact: the CV link is `.cv` (largest, bold). It is a text link, not a button.
 
