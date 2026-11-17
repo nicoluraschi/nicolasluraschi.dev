@@ -226,6 +226,7 @@ h3 {
 .role { margin: var(--space-3) 0 var(--space-4); font-size: 1.125rem; line-height: var(--leading-snug); }
 .lead { margin: 0 0 var(--space-4); font-size: 1.25rem; line-height: 1.5; }
 .meta { margin: 0; color: var(--muted); font-size: 0.9375rem; }
+.hero-body { margin-top: var(--space-4); } /* one column: space below the location line */
 
 /* ---------- Home: selected work ---------- */
 .work {
@@ -261,6 +262,7 @@ h3 {
   color: var(--accent);
 }
 .stack dd { display: inline; margin: 0; }
+.site { white-space: nowrap; } /* the "·" separator wraps with its link, never alone */
 .tag {
   display: inline-block;
   padding: 0 0.45rem;
@@ -278,6 +280,7 @@ h3 {
 /* ---------- Home: experience, toolbox ---------- */
 .org { margin-bottom: var(--space-5); font-size: var(--text-lg); line-height: var(--leading-snug); }
 .org span { color: var(--muted); font-size: var(--text-base); }
+.job + .org { margin-top: var(--space-6); padding-top: var(--space-5); border-top: 1px solid var(--hair); } /* an employer after an earlier entry starts its own group */
 .job {
   margin-bottom: var(--space-5);
   padding-top: var(--space-5);
@@ -473,6 +476,7 @@ h3 {
   }
   .role { font-size: 1.25rem; }
   .hero-head .meta { margin-top: var(--space-6); }
+  .hero-body { margin-top: 0; }
   .lead { font-size: var(--text-lg); }
 
   .work { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); column-gap: var(--col-gap); align-items: start; }
