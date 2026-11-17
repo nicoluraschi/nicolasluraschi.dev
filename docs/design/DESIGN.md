@@ -26,10 +26,10 @@ header > main (hero, About, How I work with AI, Selected work, Experience, Toolb
 - Contact: the CV link is `.cv` (largest, bold). It is a text link, not a button.
 
 ## Structure (essay)
-`body.essay-page` > header > `main.essay` > `article` > `header.essay-head` (h1, lead, pull-quote), `nav.toc` (the contents list), `div.essay-body` (one `section` with an `id` and an `h2` per entry in the contents). Headings: one `h1`, section titles `h2`.
+`body.essay-page` > header > `main.essay` > `article` > `header.essay-head` (h1, the `p.meta` "Last updated" line, lead, pull-quote), `nav.toc` (the contents list), `div.essay-body` (one `section` with an `id` and an `h2` per entry in the contents). Headings: one `h1`, section titles `h2`.
 - Layout: one column with the contents first; from 70em the page is 70rem wide and `nav.toc` is a sticky left column (CSS `position: sticky`). Prose keeps the 37rem measure; anything with `.diagram` spans the content column. A new section gets a contents link, in the same order.
 - `.pullquote` = the one-line takeaway (keep it to one short sentence).
-- Diagrams (`.diagram`, cards on `--surface` with a hairline): `ul.roles` (who does what), `ol.flow`, `table.risk` (process sized by risk, a real table with `th scope`; below 45em each row stacks into a card, its lanes labelled from each cell's `data-lane`), `figure.loop` (the cross-review loop: a readable `ol` of numbered cards, one per step, under a `figcaption`), `figure.guards` (what the hooks block). Their labels stay `--muted`; only the flow and loop numbers take the accent.
+- Diagrams (`.diagram`, cards on `--surface` with a hairline): `ul.roles` (who does what), `ol.flow`, `table.risk` (process sized by risk, a real table with `th scope`; below 45em each row stacks into a card, its lanes labelled from each cell's `data-lane`; its column headers stay short, and the `p.note#risk-note` under it, tied by `aria-describedby`, defines the lanes), `figure.loop` (the cross-review loop: a readable `ol` of numbered cards, one per step, under a `figcaption`), `figure.guards` (what the hooks stop, three plain rules). Their labels stay `--muted`; only the flow and loop numbers take the accent.
 - `ol.flow` is a visual summary of the numbered list under it. It is `aria-hidden`, the only diagram that is. If the six steps change, update BOTH the diagram and the list (`tests/browser/essay.spec.mjs` compares them). Chips (`.chip`) mark who decides; keep them to 2-4 words.
 
 ## What depends on text length

@@ -326,6 +326,7 @@ h3 {
 .essay-head > *,
 .essay-body > section > :not(.diagram) { max-width: var(--measure); }
 .essay h1 { margin-bottom: var(--space-5); }
+.essay-head .meta { margin-bottom: var(--space-4); }
 
 .toc { margin-bottom: var(--space-6); font-size: var(--text-sm); line-height: 1.4; }
 .toc-h {
@@ -448,7 +449,7 @@ h3 {
    The column headers stay in the table for screen readers, and the visible lane label is given
    an empty text alternative so it is not announced twice. Screen only: print keeps the table. */
 @media screen and (max-width: 44.99em) {
-  .risk, .risk tbody, .risk tr, .risk th { display: block; }
+  .risk, .risk caption, .risk tbody, .risk tr, .risk th { display: block; }
   .risk { border: 0; background: none; }
   .risk thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .risk tr { padding: var(--space-3) var(--space-4); border: 1px solid var(--hair); border-radius: 4px; background: var(--surface); }

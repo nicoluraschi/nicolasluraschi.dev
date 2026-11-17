@@ -27,6 +27,7 @@
   <article>
     <header class="essay-head">
       <h1>How I work with AI</h1>
+      <p class="meta">Last updated <time datetime="2026-11">November 2026</time></p>
       <p class="lead">AI agents are fast at producing code and unreliable at judging it. So I built a workflow where the agents do the implementation and every decision that matters goes through me: what we build, how it's designed, how we'll know it works, and what gets merged. The workflow is defined and written down, but it isn't finished: AI tooling moves fast, so I keep refining it.</p>
 
       <p class="pullquote"><span>In one line</span>Claude writes, Codex reviews the risky work, I decide.</p>
@@ -35,6 +36,7 @@
     <nav class="toc" aria-label="Contents">
       <p class="toc-h">Contents</p>
       <ol>
+        <li><a href="#team">What this means for a team</a></li>
         <li><a href="#tools">The tools</a></li>
         <li><a href="#who">Who does what</a></li>
         <li><a href="#flow">How a piece of work flows</a></li>
@@ -42,16 +44,27 @@
         <li><a href="#second-opinion">The second opinion</a></li>
         <li><a href="#guardrails">Guardrails</a></li>
         <li><a href="#improves">A setup that keeps changing</a></li>
-        <li><a href="#principles">Principles</a></li>
       </ol>
     </nav>
 
     <div class="essay-body">
+      <section id="team">
+        <h2>What this means for a team</h2>
+        <p>Behind the agents are nine years of building and reviewing production software at Neocoast, from software engineer to Head of Technology. The agents bring the speed; the judgment is mine. In practice that means:</p>
+        <ul>
+          <li><strong>Small pull requests you can review</strong>, one concern each, with the tests written first.</li>
+          <li><strong>Decisions you can trace.</strong> Every plan states what's in, what's out and how we'll know it works, and I approve it before any code is written.</li>
+          <li><strong>Security that isn't skipped for looking small.</strong> A change touching login, money or personal data gets a code audit before it merges, and high-risk work a threat model too.</li>
+          <li><strong>Your code stays where you allow it.</strong> It goes to a second AI provider only on projects where that's allowed, and the setup works in repos I don't own without adding files to them.</li>
+        </ul>
+        <p>The workflow grew out of building <a href="/#work-h">RunHub and Marginalia</a>.</p>
+      </section>
+
       <section id="tools">
         <h2>The tools</h2>
         <ul>
           <li><strong>Claude Code</strong> (Anthropic) is the main agent. The session I talk to plans, runs the checks and writes routine work itself. On high-risk work a separate agent writes the code and the tests from the approved plan. Smaller, cheaper models handle search and lookups.</li>
-          <li><strong>Codex CLI</strong> (OpenAI) is a second opinion from a different provider, and read-only. On high-risk work it critiques the spec and the plan; on changes touching login, permissions, money or personal data, the final diff too. It runs only on projects where I've allowed code to go to a second provider.</li>
+          <li><strong>Codex CLI</strong> (OpenAI) is a second opinion from a different provider, and read-only. On high-risk work it critiques the spec and the plan; on changes touching login, permissions, money or personal data, the final diff too. It runs only where that's allowed.</li>
           <li><strong>Zed</strong> is where I read and review the code.</li>
           <li><strong>GitHub</strong> holds every change as a small pull request.</li>
         </ul>
@@ -64,7 +77,7 @@
         <ul class="roles diagram">
           <li><p class="who">Me <span>decides</span></p><p>What we build and what's out; every plan; product, taste, security and privacy calls; and the final merge.</p></li>
           <li><p class="who">Claude Code <span>writes</span></p><p>Plans, runs the checks and shows the real output. It writes routine work itself; on high-risk work a separate agent writes the code and the tests from the approved plan.</p></li>
-          <li><p class="who">Codex <span>reviews risky work</span></p><p>From a different provider and read-only, it critiques the spec and the plan on high-risk work, and the final diff on login, permissions, money or personal data. Only where I've allowed it.</p></li>
+          <li><p class="who">Codex <span>reviews risky work</span></p><p>Where allowed, from a different provider and read-only, it critiques the spec and the plan on high-risk work, and the final diff on login, permissions, money or personal data.</p></li>
         </ul>
       </section>
 
@@ -82,7 +95,7 @@
           <li><strong>Classify it out loud.</strong> A one-line fix, a routine feature and a change touching login, money or personal data each get a different amount of process.</li>
           <li><strong>Plan, then wait for my "go".</strong> The plan states what's in, what's out, how we'll know it works, and every blocking assumption as a question. No code before I approve it.</li>
           <li><strong>Tests first.</strong> A failing test, then the code that makes it pass.</li>
-          <li><strong>Review in proportion to risk.</strong> Routine work gets an automated code review. High-risk work also gets a security threat model, a written spec and, where I've allowed it, Codex's critique.</li>
+          <li><strong>Review in proportion to risk.</strong> Routine work gets an automated code review. High-risk work also gets a security threat model, a written spec and, where allowed, Codex's critique.</li>
           <li><strong>Prove it.</strong> "Done" means real test output, not a claim that it passed.</li>
           <li><strong>One small PR per concern</strong>, each in its own isolated copy of the repository, so parallel sessions never collide.</li>
         </ol>
@@ -91,29 +104,30 @@
       <section id="risk">
         <h2>Process sized by risk</h2>
         <p>Process costs time, so it scales with what a change can break. A one-line fix doesn't get a threat model; a change touching login, money or personal data doesn't skip one.</p>
-        <table class="risk diagram">
+        <table class="risk diagram" aria-describedby="risk-note">
           <caption>How much process each kind of change gets</caption>
           <thead>
             <tr>
               <td></td>
               <th scope="col">Trivial <span>a fix, a config change</span></th>
               <th scope="col">Light <span>a routine feature</span></th>
-              <th scope="col">High-risk <span>login, permissions, money, personal data; the data model, dependencies, public APIs, new subsystems</span></th>
+              <th scope="col">High-risk <span>sensitive or structural</span></th>
             </tr>
           </thead>
           <tbody>
             <tr><th scope="row">Plan</th><td data-lane="Trivial">Short plan, my "go"</td><td data-lane="Light">Plan with its test cases, my "go"</td><td data-lane="High-risk">Written spec, then a plan, my "go"</td></tr>
             <tr><th scope="row">Tests</th><td data-lane="Trivial">Tests first</td><td data-lane="Light">Tests first</td><td data-lane="High-risk">Tests first</td></tr>
             <tr><th scope="row">Review</th><td data-lane="Trivial">Suite, coverage and scope check</td><td data-lane="Light">Automated code review</td><td data-lane="High-risk">A deeper automated code review; on login, permissions, money or personal data, a multi-agent review I launch</td></tr>
-            <tr><th scope="row">Second provider</th><td data-lane="Trivial">No</td><td data-lane="Light">No</td><td data-lane="High-risk">Where I've allowed it, Codex critiques the spec and the plan, and the final diff on login, permissions, money or personal data</td></tr>
+            <tr><th scope="row">Second provider</th><td data-lane="Trivial">No</td><td data-lane="Light">No</td><td data-lane="High-risk">Where allowed, Codex critiques the spec and the plan, and the final diff on login, permissions, money or personal data</td></tr>
             <tr><th scope="row">Security</th><td data-lane="Trivial">Code audit if it touches a sensitive path</td><td data-lane="Light">Risk triage and a code audit</td><td data-lane="High-risk">Threat model, design review and code audit</td></tr>
           </tbody>
         </table>
+        <p class="note" id="risk-note">High-risk means login, permissions, money or personal data; or the data model, a dependency, a public API or a new subsystem.</p>
       </section>
 
       <section id="second-opinion">
         <h2>The second opinion</h2>
-        <p>On high-risk work, the model that wrote the spec doesn't get the last word on it. On projects where I've allowed it, Codex reviews the spec and then the plan before any code, each in the same bounded loop:</p>
+        <p>On high-risk work, the model that wrote the spec doesn't get the last word on it. On projects where that's allowed, Codex reviews the spec and then the plan before any code, each in the same bounded loop:</p>
         <figure class="loop diagram">
           <figcaption>One review, at most two rounds</figcaption>
           <ol>
@@ -130,19 +144,18 @@
       <section id="guardrails">
         <h2>Guardrails</h2>
         <p>Much of the know-how is packaged as <em>skills</em>: instructions the agent loads for a specific job, like a security audit, a UI review or test-driven development.</p>
-        <p>The AI follows written instructions most of the time, not always. So the rules that matter are enforced by <em>hooks</em>, small scripts that can block an action before it happens:</p>
+        <p>The AI follows written instructions most of the time, not always. So the rules that matter are enforced by <em>hooks</em>, small scripts that stop the agent when it breaks one:</p>
         <figure class="guards diagram">
-          <figcaption>What the hooks block</figcaption>
+          <figcaption>What the hooks stop</figcaption>
           <ul>
-            <li>Edits on the main branch; changes made through the shell are caught before the turn can end.</li>
+            <li>Changes on the main branch.</li>
             <li>A commit while the last test run was red.</li>
-            <li>Ending a turn while a security audit is owed.</li>
-            <li>Launching the QA agent without asking me first.</li>
+            <li>Wrapping up while a security audit is still owed.</li>
           </ul>
         </figure>
         <p>Some checks are triggered by what the change is, not by anyone remembering to ask:</p>
         <ul>
-          <li><strong>A security audit in a clean context.</strong> It sees the change and its plan, never the conversation that produced them, so it judges the code, not the reasoning behind it. A critical finding is reported first and stops the work until it's fixed or I record an override.</li>
+          <li><strong>A security audit in a clean context.</strong> It sees the change and its plan, never the conversation that produced them, so it judges the code, not the reasoning behind it. A critical finding blocks the work by default.</li>
           <li><strong>Data checks.</strong> A migration gets a migration-safety review; a schema or constraint change, a data-integrity review.</li>
           <li><strong>Observability.</strong> A new endpoint, background job or integration gets its logging and error tracking written with it.</li>
         </ul>
@@ -152,19 +165,9 @@
       <section id="improves">
         <h2>A setup that keeps changing</h2>
         <p>None of this is fixed. AI tools change month to month, so I treat the setup like code: versioned, changed in small reviewed steps, each with a reason. The reasons come from what my own sessions show, from periodic audits of the setup itself, and from practices the wider community has tested, which I adopt when they earn their place.</p>
-        <p>Every review step logs what it found and how much of it I accepted. Usage audits read real sessions to show what each step costs in tokens and time. Together they show which checks pay for themselves, and the process changes when one doesn't: the routine code review now reports at most five findings, after too many of its findings were being rejected.</p>
+        <p>Every review step logs what it found and how much of it I accepted. Usage audits read real sessions to show what each step costs in tokens and time. Together they show which checks pay for themselves, and the process changes when one doesn't: I cut the routine code review to its five most important findings after the logs showed much of what it reported wasn't worth acting on.</p>
         <p>Measurement also stops changes: a proposed rule for skipping Codex's review was dropped when a test against past reviews showed it would have skipped one that found blocking problems.</p>
         <p>The setup also teaches me. For stacks I'm still learning, like TypeScript and Node.js, each plan lists the concepts the work will use, each pull request adds them to a backlog, and a weekly study session I run myself works through it.</p>
-      </section>
-
-      <section id="principles">
-        <h2>Principles</h2>
-        <ul>
-          <li><strong>Plan before code.</strong> Most of the alignment with the AI happens at the plan, not the diff.</li>
-          <li><strong>Small diffs.</strong> A change too big to review properly doesn't get merged.</li>
-          <li><strong>Security is never skipped</strong> for looking small.</li>
-          <li><strong>Two providers, not one.</strong> The model that wrote the code doesn't get the last word on it.</li>
-        </ul>
       </section>
     </div>
   </article>
