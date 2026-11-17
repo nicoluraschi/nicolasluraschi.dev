@@ -27,7 +27,7 @@
   <article>
     <header class="essay-head">
       <h1>How I work with AI</h1>
-      <p class="lead">AI agents are fast at producing code and unreliable at judging it. So I built a workflow where the agents do the implementation and every decision that matters goes through me: what we build, how it's designed, how we'll know it works, and what gets merged.</p>
+      <p class="lead">AI agents are fast at producing code and unreliable at judging it. So I built a workflow where the agents do the implementation and every decision that matters goes through me: what we build, how it's designed, how we'll know it works, and what gets merged. The workflow is defined and written down, but it isn't finished: AI tooling moves fast, so I keep refining it.</p>
 
       <p class="pullquote"><span>In one line</span>Claude writes, Codex reviews the risky work, I decide.</p>
     </header>
@@ -41,7 +41,7 @@
         <li><a href="#risk">Process sized by risk</a></li>
         <li><a href="#second-opinion">The second opinion</a></li>
         <li><a href="#guardrails">Guardrails</a></li>
-        <li><a href="#improves">How the setup improves</a></li>
+        <li><a href="#improves">A setup that keeps changing</a></li>
         <li><a href="#principles">Principles</a></li>
       </ol>
     </nav>
@@ -150,7 +150,8 @@
       </section>
 
       <section id="improves">
-        <h2>How the setup improves</h2>
+        <h2>A setup that keeps changing</h2>
+        <p>None of this is fixed. AI tools change month to month, so I treat the setup like code: versioned, changed in small reviewed steps, each with a reason. The reasons come from what my own sessions show, from periodic audits of the setup itself, and from practices the wider community has tested, which I adopt when they earn their place.</p>
         <p>Every review step logs what it found and how much of it I accepted. Usage audits read real sessions to show what each step costs in tokens and time. Together they show which checks pay for themselves, and the process changes when one doesn't: the routine code review now reports at most five findings, after too many of its findings were being rejected.</p>
         <p>Measurement also stops changes: a proposed rule for skipping Codex's review was dropped when a test against past reviews showed it would have skipped one that found blocking problems.</p>
         <p>The setup also teaches me. For stacks I'm still learning, like TypeScript and Node.js, each plan lists the concepts the work will use, each pull request adds them to a backlog, and a weekly study session I run myself works through it.</p>

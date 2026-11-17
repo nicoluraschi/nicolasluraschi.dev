@@ -171,6 +171,18 @@ test('who writes the code is stated per tier, and Codex needs consent', async ({
   await expect(page.locator('#second-opinion > p').first()).toContainText(consent);
 });
 
+test('the page says the setup keeps changing, and why', async ({ page }) => {
+  await open(page, 1280);
+  await expect(page.locator('.lead')).toContainText('I keep refining it');
+  const section = page.locator('#improves');
+  await expect(section.locator('h2')).toHaveText('A setup that keeps changing');
+  const opening = section.locator('p').first();
+  await expect(opening).toContainText('None of this is fixed');
+  for (const source of ['my own sessions', 'audits of the setup itself', 'the wider community']) {
+    await expect(opening).toContainText(source);
+  }
+});
+
 test('the security and data checks claim no more than the setup does', async ({ page }) => {
   await open(page, 1280);
   const guardrails = page.locator('#guardrails');
