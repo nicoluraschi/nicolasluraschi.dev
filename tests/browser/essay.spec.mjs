@@ -88,12 +88,14 @@ test('contents links name the sections in order and reach them', async ({ page }
   }
 });
 
-test('the essay carries the four diagrams, and only the flow is hidden', async ({ page }) => {
+test('the essay carries the five diagrams, and only the flow is hidden', async ({ page }) => {
   await open(page, 1280);
   const classes = await page.locator('.diagram').evaluateAll((els) => els.map((el) => el.classList[0]));
-  expect(classes).toEqual(['roles', 'flow', 'risk', 'guards']);
+  expect(classes).toEqual(['roles', 'flow', 'risk', 'loop', 'guards']);
   const hidden = await page.locator('[aria-hidden="true"]').evaluateAll((els) => els.map((el) => el.className));
-  expect(hidden).toEqual(['flow diagram']);
+  // The loop is read as a list; only its visual step numbers are hidden, so they aren't read twice.
+  expect(hidden).toEqual(['flow diagram', 'n', 'n', 'n', 'n', 'n']);
+  await expect(page.locator('.loop .n:not([aria-hidden="true"])')).toHaveCount(0);
 });
 
 test('the flow diagram and the numbered list under it name the same six steps', async ({ page }) => {
@@ -131,6 +133,10 @@ for (const width of [320, 360]) {
       expect(cell.share).toBeGreaterThan(0.75);
       expect(cell.label).toContain(lanes[i % 3]);
     });
+    // The caption spans the stacked cards instead of a one-word-per-line column.
+    const caption = await box(page.locator('table.risk caption'));
+    const table = await box(page.locator('table.risk'));
+    expect(caption.width / table.width).toBeGreaterThan(0.75);
     // Stacking must not cost the table its semantics.
     await expect(page.getByRole('table', { name: 'How much process each kind of change gets' })).toBeVisible();
     await expect(page.getByRole('rowheader', { name: 'Security' })).toBeVisible();
@@ -141,6 +147,110 @@ test('the pull-quote says a second provider reviews the risky work', async ({ pa
   await open(page, 1280);
   await expect(page.locator('.pullquote')).toContainText('Codex reviews the risky work');
   await expect(page.locator('#flow')).toContainText('every blocking assumption');
+});
+
+// The rewrite against the real setup: each claim below is scoped to what the workflow does.
+test('the cross-review loop is a readable list of steps with a two-round limit', async ({ page }) => {
+  await open(page, 1280);
+  const loop = page.locator('figure.loop');
+  await expect(loop.locator('figcaption')).toContainText('at most two rounds');
+  const steps = loop.locator('ol > li');
+  await expect(steps).toHaveCount(5);
+  await expect(loop.locator('ol > li .n')).toHaveText(['1', '2', '3', '4', '5']);
+  await expect(steps.nth(2)).toContainText('accepted');
+  await expect(steps.nth(2)).toContainText('rejected');
+  await expect(steps.nth(3)).toContainText('no third');
+});
+
+test('who writes the code is stated per tier, and Codex needs consent', async ({ page }) => {
+  await open(page, 1280);
+  for (const id of ['#tools', '#who']) {
+    await expect(page.locator(id)).toContainText('separate agent writes the code and the tests');
+  }
+  // Consent is stated once, plainly, where a team reads it, and kept on the Codex detail.
+  await expect(page.locator('#team')).toContainText('only on projects where that\'s allowed');
+  await expect(page.locator('#tools')).toContainText('where that\'s allowed');
+  await expect(page.locator('table.risk tbody tr').nth(3).locator('td').nth(2)).toContainText('Where allowed');
+  await expect(page.locator('#flow ol:not(.flow) > li').nth(3)).toContainText('where allowed');
+  await expect(page.locator('#who .roles li').nth(2)).toContainText('Where allowed');
+  await expect(page.locator('#second-opinion > p').first()).toContainText('where that\'s allowed');
+});
+
+test('the page opens with what this means for a team, backed by experience', async ({ page }) => {
+  await open(page, 1280);
+  await expect(page.locator('.essay-head .meta')).toHaveText('Last updated November 2026');
+  // The date line keeps its own space below, so it doesn't read as part of the lead.
+  const meta = await box(page.locator('.essay-head .meta'));
+  const lead = await box(page.locator('.essay-head .lead'));
+  expect(lead.top - meta.bottom).toBeGreaterThanOrEqual(16);
+  await expect(page.locator('.essay-body > section').first()).toHaveAttribute('id', 'team');
+  const team = page.locator('#team');
+  await expect(team.locator('h2')).toHaveText('What this means for a team');
+  await expect(team).toContainText('nine years');
+  await expect(team).toContainText('Head of Technology');
+  await expect(team).toContainText("repos I don't own");
+  await expect(team.locator('a[href="/#work-h"]')).toHaveCount(1);
+  // The workflow grew with the products; it didn't exist in full when they started.
+  await expect(team).toContainText('grew out of building');
+  // Every sensitive change gets a code audit; only high-risk work adds a threat model.
+  await expect(team).toContainText('gets a code audit before it merges, and high-risk work a threat model too');
+  await expect(page.locator('#principles')).toHaveCount(0);
+});
+
+test('the page says the setup keeps changing, and why', async ({ page }) => {
+  await open(page, 1280);
+  await expect(page.locator('.lead')).toContainText('I keep refining it');
+  const section = page.locator('#improves');
+  await expect(section.locator('h2')).toHaveText('A setup that keeps changing');
+  const opening = section.locator('p').first();
+  await expect(opening).toContainText('None of this is fixed');
+  for (const source of ['my own sessions', 'audits of the setup itself', 'the wider community']) {
+    await expect(opening).toContainText(source);
+  }
+});
+
+test('the security and data checks claim no more than the setup does', async ({ page }) => {
+  await open(page, 1280);
+  const guardrails = page.locator('#guardrails');
+  await expect(guardrails).toContainText('A critical finding blocks the work by default');
+  await expect(guardrails).not.toContainText('override');
+  await expect(guardrails).toContainText('A migration gets a migration-safety review');
+  await expect(guardrails).toContainText('a schema or constraint change, a data-integrity review');
+});
+
+test('the hooks list is three plain rules, without internals', async ({ page }) => {
+  await open(page, 1280);
+  const guards = page.locator('figure.guards');
+  await expect(guards.locator('li')).toHaveCount(3);
+  for (const internal of ['turn', 'QA agent', 'shell']) await expect(guards).not.toContainText(internal);
+});
+
+test('the high-risk lane keeps a short header and lists every trigger under the table', async ({ page }) => {
+  await open(page, 1280);
+  await expect(page.locator('table.risk thead th').nth(2)).toHaveText('High-risk sensitive or structural');
+  const note = page.locator('table.risk + .note');
+  // The definition is tied to the table for assistive tech, not only placed after it.
+  await expect(page.locator('table.risk')).toHaveAttribute('aria-describedby', 'risk-note');
+  await expect(note).toHaveAttribute('id', 'risk-note');
+  for (const trigger of ['permissions', 'data model', 'dependency', 'public API', 'new subsystem']) {
+    await expect(note).toContainText(trigger);
+  }
+  await expect(page.locator('table.risk tbody tr').nth(2).locator('td').nth(2)).toContainText('I launch');
+});
+
+test('guardrails and the improvement loop are described', async ({ page }) => {
+  await open(page, 1280);
+  const guardrails = page.locator('#guardrails');
+  await expect(guardrails).toContainText('never the conversation');
+  await expect(guardrails).toContainText('migration');
+  await expect(guardrails).toContainText('new endpoint');
+  const improves = page.locator('#improves');
+  await expect(improves).toContainText('logs what it found');
+  await expect(improves).toContainText("the process changes when one doesn't.");
+  // The owner dropped the review-cap example.
+  await expect(improves).not.toContainText('five most important');
+  await expect(improves).not.toContainText('worth acting on');
+  await expect(improves).toContainText('weekly study session');
 });
 
 test('headings run h1, then h2, with no level skipped', async ({ page }) => {

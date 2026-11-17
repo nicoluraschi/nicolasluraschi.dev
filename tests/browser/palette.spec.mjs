@@ -3,7 +3,7 @@ import { PAGES, SCHEMES, assertScheme } from './helpers.mjs';
 
 // PR 3 palette: the accent sits on the places DESIGN.md lists, beyond links, the pull-quote rule
 // and the focus ring. Labels and dates that are not listed stay muted.
-const ACCENT_TEXT = ['.sec-h', '.stack dt', '.toolbox dt', '.tag', '.flow .n', '.pullquote span'];
+const ACCENT_TEXT = ['.sec-h', '.stack dt', '.toolbox dt', '.tag', '.flow .n', '.loop .n', '.pullquote span'];
 const MUTED_TEXT = ['.job .dates', '.meta', '.note'];
 
 async function usage(page) {
