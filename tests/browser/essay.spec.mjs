@@ -194,6 +194,8 @@ test('the page opens with what this means for a team, backed by experience', asy
   await expect(team.locator('a[href="/#work-h"]')).toHaveCount(1);
   // The workflow grew with the products; it didn't exist in full when they started.
   await expect(team).toContainText('grew out of building');
+  // The setup itself is public; the essay points to it once.
+  await expect(team.locator('a[href="https://github.com/nicoluraschi/ai-dev-workflow"]')).toHaveCount(1);
   // Every sensitive change gets a code audit; only high-risk work adds a threat model.
   await expect(team).toContainText('gets a code audit before it merges, and high-risk work a threat model too');
   await expect(page.locator('#principles')).toHaveCount(0);
