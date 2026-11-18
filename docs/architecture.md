@@ -13,18 +13,19 @@ top-level path is neither part of the site (`SITE_PATHS`) nor excluded. Each pag
 - One self-hosted font, Fraunces (`fonts/`, SIL OFL 1.1), preloaded, `font-display: swap`; no
   third-party font service, so no request leaves the domain. While it loads, a metric-adjusted
   `local()` fallback (tuned for Linux's Liberation Serif) keeps the swap from moving the page.
-- Visibility: the repo stays **private with Pages off** until the owner approves launch. GitHub
-  Pages on the free plan needs a public repo, so launch is one sequence: make the repo public,
-  enable Pages from `main` with the custom domain, add the DNS records below, enforce HTTPS, then
-  turn on branch protection requiring CI (also a public-repo feature on the free plan).
-- Because the history becomes public at launch, nothing private enters any commit, ever.
+- Visibility: the repo is **public** and Pages serves `main` (launched 2026-11-17, after a privacy
+  pass over the full history, PR refs, PR text, Actions logs and binaries). GitHub Pages on the
+  free plan needs a public repo. A ruleset on `main` (`protect-main`) requires the CI `checks` job
+  and blocks force-pushes and deletion; secret scanning and push protection are on.
+- Because the full history is public, nothing private enters any commit, ever.
 
-## DNS (added at launch)
+## DNS (Cloudflare, all records DNS only)
 Apex `nicolasluraschi.dev`: A records `185.199.108.153`, `185.199.109.153`, `185.199.110.153`,
 `185.199.111.153`; AAAA records `2606:50c0:8000::153`, `2606:50c0:8001::153`,
 `2606:50c0:8002::153`, `2606:50c0:8003::153`. `www`: CNAME `nicoluraschi.github.io.` The domain is
-already verified on the GitHub account (TXT record), which blocks takeover while Pages is off.
-`.dev` is HSTS-preloaded, so the site loads only once GitHub has issued its certificate.
+verified on the GitHub account (TXT `_github-pages-challenge-nicoluraschi`, keep it: it blocks
+takeover). Records must stay DNS only, or GitHub cannot renew its certificate. `.dev` is
+HSTS-preloaded, so the site loads only over HTTPS; Enforce HTTPS is on.
 
 ## Quality tooling & CI
 - Local hooks (`lefthook.yml`, run `lefthook install` once per clone): gitleaks on staged changes,
@@ -34,8 +35,7 @@ already verified on the GitHub account (TXT record), which blocks takeover while
   gitleaks over the full history, `npm ci --ignore-scripts`, a Python venv with hash-checked
   `coverage`, a cached Chromium, `npm run check` (all checks and the self-tests, coverage gate
   ≥85% on `scripts/check.py`), then `npm run check:external` as its own step so a third-party
-  outage reads as that step failing. While the repo is private these minutes count against the
-  shared Actions quota.
+  outage reads as that step failing.
 - Site checks, by what proves them. `scripts/check.py` (Python stdlib): forbidden markup, internal
   links and assets (`srcset` candidates included), malformed URLs, leftover placeholders, contrast
   from the CSS tokens, published paths against `_config.yml`, and with `--external` the outside

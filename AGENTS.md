@@ -73,8 +73,8 @@ history, then `npm run check` (adds the self-tests and browser checks) and `npm 
 Key decisions are in `docs/architecture.md`; the weightiest get an ADR in `docs/adr/`.
 
 ## Guardrails
-- **This repo is public (or will be).** Never commit private data: no dossier content, no client or
-  colleague names, no client metrics, no references' details, no phone number. Copy rules:
+- **This repo is public, with its full history.** Never commit private data: no dossier content,
+  no client or colleague names, no client metrics, no references' details, no phone number. Copy rules:
   `.claude/rules/content.md`.
 - No JavaScript and no new dependencies without flagging them first.
 - Product, copy and taste decisions belong to the owner: flag, don't guess.
